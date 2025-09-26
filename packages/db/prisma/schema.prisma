@@ -1,0 +1,72 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  googleId  String   @unique @map("google_id")
+  name      String?
+  avatar    String?
+  
+  // Ethereum wallet data (encrypted)
+  encryptedPrivateKey String @map("encrypted_private_key")
+  publicAddress      String @unique @map("public_address")
+  
+  // Solana wallet data (encrypted) - optional for backward compatibility
+  encryptedPrivateKeySolana String? @map("encrypted_private_key_solana")
+  publicAddressSolana      String? @unique @map("public_address_solana")
+  
+  // Last login tracking
+  lastLoginAt DateTime? @map("last_login_at")
+  
+  // Relationships
+  tiplinks Tiplink[]
+  
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  
+  @@map("users")
+}
+
+model Tiplink {
+  id          String @id @default(cuid())
+  creatorId   String @map("creator_id")
+  
+  // Ethereum transaction details
+  tokenAddress String @map("token_address")
+  amount       String // Store as string to avoid precision issues
+  txHash       String? @map("tx_hash")
+  
+  // Tiplink specific
+  url         String @unique
+  claimedBy   String? @map("claimed_by") // Ethereum address
+  claimedAt   DateTime? @map("claimed_at")
+  
+  // Status
+  isActive    Boolean @default(true) @map("is_active")
+  expiresAt   DateTime? @map("expires_at")
+  
+  // Message from sender
+  message     String? @db.Text
+  
+  // Relationship
+  creator User @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  
+  @@map("tiplinks")
+}
