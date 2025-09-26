@@ -1,0 +1,30 @@
+{
+  "name": "poller",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "bun --watch index.ts",
+    "start": "bun index.ts",
+    "test": "bun test-swap.ts",
+    "test:monitor": "bun test-swap.ts --monitor"
+  },
+  "dependencies": {
+    "@1inch/byte-utils": "^3.1.0",
+    "@1inch/cross-chain-sdk": "^1.0.2",
+    "@coral-xyz/anchor": "^0.31.1",
+    "@solana/spl-token": "^0.4.14",
+    "@solana/web3.js": "^1.98.4",
+    "axios": "^1.12.2",
+    "crypto-js": "^4.2.0",
+    "dotenv": "^16.4.5",
+    "viem": "^2.37.7"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/node": "^20.0.0"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  }
+}
