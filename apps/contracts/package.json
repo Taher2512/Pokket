@@ -1,0 +1,15 @@
+{
+  "name": "contracts",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "@selfxyz/contracts": "^1.2.1"
+  }
+}
