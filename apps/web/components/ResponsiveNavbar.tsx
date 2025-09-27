@@ -79,6 +79,12 @@ export default function ResponsiveNavbar({
                   <Link href="/send" className={getActiveClass("/send")}>
                     Send
                   </Link>
+                  <Link
+                    href="/withdraw"
+                    className={getActiveClass("/withdraw")}
+                  >
+                    Withdraw
+                  </Link>
                   <Link href="/swap" className={getActiveClass("/swap")}>
                     Swap
                   </Link>
@@ -205,7 +211,7 @@ export default function ResponsiveNavbar({
         <div className="bg-white/95 backdrop-blur-xl border-t border-gray-200/60 mobile-navbar-enter">
           <div className="safe-area-pb">
             <div className="px-4 py-3">
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-4 gap-1">
                 <Link
                   href="/"
                   className={getMobileActiveClass("/")}
@@ -255,6 +261,29 @@ export default function ResponsiveNavbar({
                   </svg>
                   <span className="text-xs font-medium leading-tight">
                     Send
+                  </span>
+                </Link>
+
+                <Link
+                  href="/withdraw"
+                  className={getMobileActiveClass("/withdraw")}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  <svg
+                    className="w-5 h-5 mb-1 flex-shrink-0"
+                    fill={pathname === "/withdraw" ? "currentColor" : "none"}
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M7 16l-4-4m0 0l4-4m-4 4h18"
+                    />
+                  </svg>
+                  <span className="text-xs font-medium leading-tight">
+                    Withdraw
                   </span>
                 </Link>
 

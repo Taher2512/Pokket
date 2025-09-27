@@ -1,0 +1,22 @@
+// Static logo data URIs for embedding in QR codes
+export const LOGO_DATA_URIS = {
+  pokket:
+    "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiByeD0iOCIgZmlsbD0iI0Y5NzMxNiIvPgo8dGV4dCB4PSI1MCUiIHk9IjUwJSIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjI0IiBmb250LXdlaWdodD0iYm9sZCIgZmlsbD0id2hpdGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJjZW50cmFsIj5QPC90ZXh0Pgo8L3N2Zz4K",
+  ethereum:
+    "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiByeD0iOCIgZmlsbD0iIzYyN0VFQSIvPgo8cGF0aCBkPSJNMjAgNkwyOC41IDIwTDIwIDI2TDExLjUgMjBMMjAgNloiIGZpbGw9IndoaXRlIi8+CjxwYXRoIGQ9Ik0yMCAyOEwyOC41IDIyTDIwIDM0TDExLjUgMjJMMjAgMjhaIiBmaWxsPSJ3aGl0ZSIvPgo8L3N2Zz4K",
+  solana:
+    "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGR0ZWZzPgo8bGluZWFyR3JhZGllbnQgaWQ9InNvbGFuYS1ncmFkIiB4MT0iMCUiIHkxPSIwJSIgeDI9IjEwMCUiIHkyPSIxMDAlIj4KPHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzk5NDVGRiIvPgo8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiMxNEYxOTUiLz4KPC9saW5lYXJHcmFkaWVudD4KPC9kZWZzPgo8cmVjdCB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHJ4PSI4IiBmaWxsPSJ1cmwoI3NvbGFuYS1ncmFkKSIvPgo8cGF0aCBkPSJNOCAxNkgzMkw0MCAyNEgzMkw4IDE2WiIgZmlsbD0id2hpdGUiLz4KPHA+dGggZD0iTTggMjhIMzJMNDAgMjBIMzJMOCAyOFoiIGZpbGw9IndoaXRlIi8+CjxwYXRoIGQ9Ik04IDI0SDMyTDQwIDMySDMyTDggMjRaIiBmaWxsPSJ3aGl0ZSIvPgo8L3N2Zz4K",
+};
+
+export const getLogoForNetwork = (network: string): string | undefined => {
+  switch (network) {
+    case "pokket":
+      return LOGO_DATA_URIS.pokket;
+    case "ethereum":
+      return LOGO_DATA_URIS.ethereum;
+    case "solana":
+      return LOGO_DATA_URIS.solana;
+    default:
+      return undefined;
+  }
+};
