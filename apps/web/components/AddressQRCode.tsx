@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import QRCode from "react-qr-code";
+import QRWithLogo from "./QRWithLogo";
 import { apiService } from "../lib/api";
 import { AddressInfo, User } from "../types";
 import { useVerificationStatus } from "../contexts/VerificationContext";
@@ -102,46 +103,45 @@ export default function AddressQRCode({ className = "" }: AddressQRCodeProps) {
     if (!qrRef.current) return;
 
     try {
-      const svg = qrRef.current.querySelector("svg");
-      if (!svg) return;
+      const canvas = qrRef.current.querySelector("canvas");
+      if (!canvas) return;
 
-      // Create canvas from SVG
-      const canvas = document.createElement("canvas");
-      const ctx = canvas.getContext("2d");
+      // Create a new canvas for the final image with address text
+      const finalCanvas = document.createElement("canvas");
+      const ctx = finalCanvas.getContext("2d");
       if (!ctx) return;
 
-      const svgData = new XMLSerializer().serializeToString(svg);
-      const img = new Image();
+      finalCanvas.width = 400;
+      finalCanvas.height = 420; // Extra space for address text
 
-      img.onload = () => {
-        canvas.width = 400;
-        canvas.height = 400;
+      // White background
+      ctx.fillStyle = "white";
+      ctx.fillRect(0, 0, finalCanvas.width, finalCanvas.height);
 
-        // White background
-        ctx.fillStyle = "white";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      // Draw the QR code with logo (scaled up)
+      ctx.drawImage(canvas, 50, 50, 300, 300);
 
-        // Draw QR code
-        ctx.drawImage(img, 50, 50, 300, 300);
+      // Add address text
+      ctx.fillStyle = "black";
+      ctx.font = "14px Arial";
+      ctx.textAlign = "center";
+      ctx.fillText(
+        getCurrentAddress().slice(0, 30) +
+          (getCurrentAddress().length > 30 ? "..." : ""),
+        finalCanvas.width / 2,
+        380
+      );
 
-        // Add address text
-        ctx.fillStyle = "black";
-        ctx.font = "12px Arial";
-        ctx.textAlign = "center";
-        ctx.fillText(
-          getCurrentAddress().slice(0, 20) + "...",
-          canvas.width / 2,
-          380
-        );
+      // Add network label
+      ctx.font = "12px Arial";
+      ctx.fillStyle = "#666";
+      ctx.fillText(getCurrentNetworkLabel(), finalCanvas.width / 2, 400);
 
-        // Download
-        const link = document.createElement("a");
-        link.download = `pokket-qr-${selectedNetwork}-${getCurrentAddress().slice(0, 6)}.png`;
-        link.href = canvas.toDataURL();
-        link.click();
-      };
-
-      img.src = "data:image/svg+xml;base64," + btoa(svgData);
+      // Download
+      const link = document.createElement("a");
+      link.download = `pokket-qr-${selectedNetwork}-${getCurrentAddress().slice(0, 6)}.png`;
+      link.href = finalCanvas.toDataURL();
+      link.click();
     } catch (error) {
       console.error("Error downloading QR code:", error);
       alert("Failed to download QR code");
@@ -153,42 +153,33 @@ export default function AddressQRCode({ className = "" }: AddressQRCodeProps) {
       const address = getCurrentAddress();
       const network = getCurrentNetworkLabel();
 
-      // Create PNG image for sharing
-      const svgElement = qrRef.current?.querySelector("svg");
-      if (!svgElement) {
+      const canvas = qrRef.current?.querySelector("canvas");
+      if (!canvas) {
         throw new Error("QR code not found");
       }
 
-      const svgData = new XMLSerializer().serializeToString(svgElement);
-      const canvas = document.createElement("canvas");
-      const ctx = canvas.getContext("2d");
+      // Create a new canvas for sharing
+      const shareCanvas = document.createElement("canvas");
+      const ctx = shareCanvas.getContext("2d");
 
       if (!ctx) throw new Error("Canvas context not available");
 
-      canvas.width = 400;
-      canvas.height = 400;
+      shareCanvas.width = 400;
+      shareCanvas.height = 400;
 
       // White background
       ctx.fillStyle = "white";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillRect(0, 0, shareCanvas.width, shareCanvas.height);
 
-      const img = new Image();
-      await new Promise((resolve, reject) => {
-        img.onload = () => {
-          // Draw QR code centered
-          const qrSize = 300;
-          const x = (canvas.width - qrSize) / 2;
-          const y = (canvas.width - qrSize) / 2;
-          ctx.drawImage(img, x, y, qrSize, qrSize);
-          resolve(void 0);
-        };
-        img.onerror = reject;
-        img.src = "data:image/svg+xml;base64," + btoa(svgData);
-      });
+      // Draw QR code centered and scaled
+      const qrSize = 300;
+      const x = (shareCanvas.width - qrSize) / 2;
+      const y = (shareCanvas.height - qrSize) / 2;
+      ctx.drawImage(canvas, x, y, qrSize, qrSize);
 
       // Convert to blob
       const blob = await new Promise<Blob>((resolve) => {
-        canvas.toBlob((blob) => resolve(blob!), "image/png");
+        shareCanvas.toBlob((blob) => resolve(blob!), "image/png");
       });
 
       const shareData = {
@@ -210,7 +201,7 @@ export default function AddressQRCode({ className = "" }: AddressQRCodeProps) {
         // Fallback: download image and copy text
         const link = document.createElement("a");
         link.download = `wallet-qr-${network}.png`;
-        link.href = canvas.toDataURL();
+        link.href = shareCanvas.toDataURL();
         link.click();
 
         // Also copy text to clipboard
@@ -300,9 +291,7 @@ export default function AddressQRCode({ className = "" }: AddressQRCodeProps) {
               : "text-gray-600 hover:text-gray-900"
           }`}
         >
-          <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
-          </svg>
+          <img src="/logo1.svg" alt="Pokket" className="w-4 h-4 mr-2" />
           Pokket
         </button>
 
@@ -334,12 +323,23 @@ export default function AddressQRCode({ className = "" }: AddressQRCodeProps) {
             <svg
               className="w-4 h-4 mr-2"
               fill="currentColor"
-              viewBox="0 0 24 24"
+              viewBox="0 0 128 128"
             >
-              <path d="M12.066 7.726a4.5 4.4 0 0 1 6.168 6.166l-6.168-6.166Z" />
+              <defs>
+                <linearGradient
+                  id="solana-gradient"
+                  x1="0%"
+                  y1="0%"
+                  x2="100%"
+                  y2="100%"
+                >
+                  <stop offset="0%" stopColor="#9945FF" />
+                  <stop offset="100%" stopColor="#14F195" />
+                </linearGradient>
+              </defs>
               <path
-                fillRule="evenodd"
-                d="M18.068 9.26c1.287.906 1.287 2.474 0 3.38l-8.568 6.034c-1.287.906-2.95.162-2.95-1.32V8.646c0-1.482 1.663-2.226 2.95-1.32L18.068 9.26Z"
+                fill="url(#solana-gradient)"
+                d="M18.1 83.5c1.1-1.1 2.6-1.7 4.1-1.7h90.7c2.4 0 3.6 2.9 1.9 4.6L98.6 102.6c-1.1 1.1-2.6 1.7-4.1 1.7H4.8c-2.4 0-3.6-2.9-1.9-4.6L18.1 83.5zM18.1 25.4c1.1-1.1 2.6-1.7 4.1-1.7h90.7c2.4 0 3.6 2.9 1.9 4.6L98.6 44.5c-1.1 1.1-2.6 1.7-4.1 1.7H4.8c-2.4 0-3.6-2.9-1.9-4.6L18.1 25.4zM109.9 54.3c-1.1-1.1-2.6-1.7-4.1-1.7H15.1c-2.4 0-3.6 2.9-1.9 4.6l16.2 16.2c1.1 1.1 2.6 1.7 4.1 1.7h90.7c2.4 0 3.6-2.9 1.9-4.6l-16.2-16.2z"
               />
             </svg>
             Solana
@@ -351,11 +351,10 @@ export default function AddressQRCode({ className = "" }: AddressQRCodeProps) {
       <div className="bg-white p-6 rounded-xl border-2 border-gray-100 mb-6">
         <div className="flex justify-center" ref={qrRef}>
           <div className="bg-white p-4 rounded-xl">
-            <QRCode
+            <QRWithLogo
               value={getQRValue()}
               size={200}
-              style={{ height: "auto", maxWidth: "100%", width: "100%" }}
-              viewBox={`0 0 256 256`}
+              network={selectedNetwork}
             />
           </div>
         </div>
@@ -409,16 +408,6 @@ export default function AddressQRCode({ className = "" }: AddressQRCodeProps) {
         <div className="bg-orange-50 rounded-xl p-4 mb-4 border border-orange-200">
           <div className="mb-3">
             <div className="flex items-center space-x-2 mb-2">
-              <svg
-                className="w-5 h-5 text-orange-600"
-                fill="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
-              </svg>
-              <span className="text-sm font-semibold text-orange-900">
-                Pokket Profile QR
-              </span>
               {verificationStatus.isVerified && (
                 <VerifiedBadge
                   verificationStatus={verificationStatus}
@@ -427,23 +416,11 @@ export default function AddressQRCode({ className = "" }: AddressQRCodeProps) {
                 />
               )}
             </div>
-            <p className="text-xs text-orange-700 mb-3">
-              This QR contains your complete Pokket profile for easy sharing
-              {verificationStatus.isVerified && (
-                <span className="ml-1 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
-                  Verified Identity
-                </span>
-              )}
-            </p>
-            <div className="font-mono text-xs bg-white p-3 rounded border border-orange-200">
-              {`{
-  "name": "${user?.name || "Anonymous User"}",
-  "ethAddress": "${addressInfo?.ethereum.address || "..."}",
-  "solAddress": "${addressInfo?.solana?.address || "null"}",
-  "verified": ${verificationStatus.isVerified},
-  "verificationTimestamp": ${verificationStatus.verificationTimestamp || "null"}
-}`}
-            </div>
+            {verificationStatus.isVerified && (
+              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                Verified Identity
+              </span>
+            )}
           </div>
         </div>
       ) : (
