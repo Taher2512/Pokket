@@ -21,8 +21,8 @@
     "viem": "^2.37.7"
   },
   "devDependencies": {
-    "@types/bun": "latest",
-    "@types/node": "^20.0.0"
+    "@types/bun": "^1.1.12",
+    "@types/node": "^20.17.6"
   },
   "peerDependencies": {
     "typescript": "^5"
