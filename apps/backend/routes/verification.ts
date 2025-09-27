@@ -41,7 +41,7 @@ const app = new Hono();
 app.use(
   "*",
   cors({
-    origin: process.env.FRONTEND_URL || "http://localhost:3000",
+    origin: "*", // Allow all origins for deployment
     credentials: true,
   })
 );
@@ -379,48 +379,36 @@ app.get("/config", async (c) => {
 });
 
 /**
- * POST /api/verification/callback
- * Handle Self Protocol verification callback and automatically write to blockchain
+ * POST /api/verification/simulate-callback
+ * Simulate a Self Protocol callback for testing (since you're using SimplePokketIdentityVerification)
  */
-app.post("/callback", async (c) => {
+app.post("/simulate-callback", async (c) => {
   try {
-    const body = await c.req.json();
-    console.log(
-      "📥 Self Protocol callback received:",
-      JSON.stringify(body, null, 2)
-    );
-
-    // Extract user address from Self Protocol callback
-    let userAddress = body.userAddress || body.user || body.address;
-
-    // If not directly provided, try to extract from verification output
-    if (!userAddress && body.userIdentifier) {
-      // Convert userIdentifier to address format
-      userAddress = `0x${body.userIdentifier.toString(16).padStart(40, "0")}`;
-    }
+    const { userAddress, verificationData } = await c.req.json();
 
     if (!userAddress || !/^0x[a-fA-F0-9]{40}$/.test(userAddress)) {
-      console.log(
-        "❌ Invalid or missing user address in Self Protocol callback"
-      );
-      return c.json({ error: "Invalid user address in callback data" }, 400);
+      return c.json({ error: "Invalid user address" }, 400);
     }
 
-    console.log(
-      `🔗 Self Protocol callback - triggering manual verification for: ${userAddress}`
-    );
+    console.log(`🧪 Simulating Self Protocol verification for: ${userAddress}`);
 
     // Use the owner's private key to verify the user
     const ownerPrivateKey = process.env.VERIFICATION_PRIVATE_KEY;
 
     if (!ownerPrivateKey) {
-      throw new Error("Owner private key not configured");
+      return c.json(
+        {
+          error: "Owner private key not configured",
+          suggestion: "Add VERIFICATION_PRIVATE_KEY to your .env file",
+        },
+        500
+      );
     }
 
     // Create wallet using owner's private key
     const ownerWallet = new Wallet(ownerPrivateKey, provider);
 
-    // Contract ABI for manual verification
+    // Contract ABI for SimplePokketIdentityVerification
     const contractABI = [
       "function verifyUser(address _user, bytes _metadata) external",
       "function isUserVerified(address user) view returns (bool)",
@@ -436,76 +424,6 @@ app.post("/callback", async (c) => {
     const isAlreadyVerified = await contract.isUserVerified?.(userAddress);
 
     if (isAlreadyVerified) {
-      console.log(`✅ User ${userAddress} already verified on blockchain`);
-
-      // Still update database with new verification data if user exists
-      try {
-        const { DatabaseService } = await import("../services/database");
-        const dbService = new DatabaseService();
-
-        const user = await dbService.findUserByAddress(userAddress);
-        if (user) {
-          // Extract verification data from callback
-          const verificationData = {
-            userAddress,
-            name:
-              body.disclosedData?.name ||
-              body.userData?.name ||
-              body.name ||
-              null,
-            nationality:
-              body.disclosedData?.nationality ||
-              body.userData?.nationality ||
-              body.nationality ||
-              null,
-            dateOfBirth:
-              body.disclosedData?.dateOfBirth ||
-              body.userData?.dateOfBirth ||
-              body.dateOfBirth ||
-              null,
-            age:
-              body.disclosedData?.age || body.userData?.age || body.age || null,
-            documentType:
-              body.disclosedData?.documentType ||
-              body.userData?.documentType ||
-              body.documentType ||
-              null,
-            userIdentifier: body.userIdentifier || null,
-          };
-
-          await dbService.updateUserVerification(userAddress, {
-            name: verificationData.name,
-            nationality: verificationData.nationality,
-            dateOfBirth: verificationData.dateOfBirth,
-            age: verificationData.age,
-            documentType: verificationData.documentType,
-            selfUserIdentifier: verificationData.userIdentifier,
-          });
-
-          console.log(
-            `💾 Updated existing user verification data in database for ${userAddress}`
-          );
-
-          return c.json({
-            success: true,
-            message:
-              "User already verified on blockchain, database updated with new data",
-            userAddress,
-            verificationData: {
-              name: verificationData.name,
-              nationality: verificationData.nationality,
-              age: verificationData.age,
-              documentType: verificationData.documentType,
-            },
-          });
-        }
-      } catch (dbError) {
-        console.error(
-          "⚠️ Failed to update existing user verification data:",
-          dbError
-        );
-      }
-
       return c.json({
         success: true,
         message: "User already verified on blockchain",
@@ -513,137 +431,51 @@ app.post("/callback", async (c) => {
       });
     }
 
-    // Extract user verification data from Self Protocol callback
-    // Self Protocol sends verification data in different possible formats:
-    const verificationData = {
-      userAddress,
-      // Personal identity data from Self Protocol
-      name:
-        body.disclosedData?.name || body.userData?.name || body.name || null,
-      nationality:
-        body.disclosedData?.nationality ||
-        body.userData?.nationality ||
-        body.nationality ||
-        null,
-      dateOfBirth:
-        body.disclosedData?.dateOfBirth ||
-        body.userData?.dateOfBirth ||
-        body.dateOfBirth ||
-        null,
-      age: body.disclosedData?.age || body.userData?.age || body.age || null,
-      documentType:
-        body.disclosedData?.documentType ||
-        body.userData?.documentType ||
-        body.documentType ||
-        null,
-      documentNumber:
-        body.disclosedData?.documentNumber ||
-        body.userData?.documentNumber ||
-        body.documentNumber ||
-        null,
-
-      // Self Protocol specific data
-      userIdentifier: body.userIdentifier || null,
-      verificationProof: body.verificationProof || body.proof || null,
-      verificationOutput: body.verificationOutput || null,
-
-      // Metadata
-      verifiedAt: Date.now(),
-      method: "self-protocol-callback",
-      platform: "pokket",
-      selfProtocolConfig: body.configId || null,
-      rawCallbackData: body, // Store full callback for debugging
-    };
-
-    console.log(`👤 User verification data extracted:`, {
-      name: verificationData.name,
-      nationality: verificationData.nationality,
-      age: verificationData.age,
-      documentType: verificationData.documentType,
-      userIdentifier: verificationData.userIdentifier,
-    });
-
     // Store verification data in database
     try {
-      const { DatabaseService } = await import("../services/database");
+      const { DatabaseService } = await import("../services/database.js");
       const dbService = new DatabaseService();
 
       await dbService.updateUserVerification(userAddress, {
-        name: verificationData.name,
-        nationality: verificationData.nationality,
-        dateOfBirth: verificationData.dateOfBirth,
-        age: verificationData.age,
-        documentType: verificationData.documentType,
-        selfUserIdentifier: verificationData.userIdentifier,
-        // Will add txHash after blockchain transaction
+        name: verificationData?.name || "Test User",
+        nationality: verificationData?.nationality || "Indian",
+        age: verificationData?.age || 25,
+        documentType: verificationData?.documentType || "aadhar_card",
       });
 
       console.log(`💾 Verification data stored in database for ${userAddress}`);
     } catch (dbError) {
       console.error("⚠️ Failed to store verification data in DB:", dbError);
-      // Continue with blockchain verification even if DB storage fails
     }
 
-    // Create enhanced metadata for blockchain storage
-    const metadataJson = JSON.stringify(verificationData);
-    const metadata = new TextEncoder().encode(metadataJson);
-
-    console.log(
-      `📝 Calling verifyUser for ${userAddress} via Self Protocol callback...`
+    // Create metadata for blockchain storage
+    const metadata = new TextEncoder().encode(
+      JSON.stringify({
+        verifiedAt: Date.now(),
+        method: "simulated-self-protocol",
+        platform: "pokket",
+        ...verificationData,
+      })
     );
 
-    // Estimate gas and get current gas price for Celo network
-    let gasEstimate = 200000n; // Default gas limit
-    let gasPrice;
+    console.log(`� Calling verifyUser for ${userAddress}...`);
 
-    try {
-      const estimatedGas = await contract.verifyUser?.estimateGas(
-        userAddress,
-        metadata
-      );
-      gasPrice = await provider.getFeeData();
-
-      if (estimatedGas) {
-        gasEstimate = estimatedGas;
-        console.log(`⛽ Gas estimate: ${gasEstimate.toString()}`);
-      }
-
-      console.log(`💰 Gas price: ${gasPrice.gasPrice?.toString()} wei`);
-
-      // Add 20% buffer to gas estimate for safety
-      const gasLimit = (gasEstimate * 120n) / 100n;
-      console.log(
-        `🔧 Using gas limit: ${gasLimit.toString()} (with 20% buffer)`
-      );
-    } catch (gasError) {
-      console.error("⚠️ Gas estimation failed:", gasError);
-      // Use default values if estimation fails
-      gasPrice = { gasPrice: 1000000000n }; // 1 gwei default
-    }
-
-    // Call the verification function with optimized gas settings
-    const tx = await contract.verifyUser?.(userAddress, metadata, {
-      gasLimit: (gasEstimate * 120n) / 100n, // 20% buffer
-      gasPrice: gasPrice?.gasPrice || 1000000000n, // Use estimated price or 1 gwei fallback
-    });
+    // Call the verification function
+    const tx = await contract.verifyUser?.(userAddress, metadata);
     console.log(`⏳ Transaction sent: ${tx?.hash}`);
 
     // Wait for confirmation
     const receipt = await tx?.wait?.();
-    console.log(
-      `✅ Self Protocol verification confirmed in block ${receipt?.blockNumber}`
-    );
+    console.log(`✅ Verification confirmed in block ${receipt?.blockNumber}`);
 
     // Update database with transaction hash
     try {
-      const { DatabaseService } = await import("../services/database");
+      const { DatabaseService } = await import("../services/database.js");
       const dbService = new DatabaseService();
 
       await dbService.updateUserVerification(userAddress, {
         txHash: tx?.hash,
       });
-
-      console.log(`🔗 Transaction hash ${tx?.hash} stored in database`);
     } catch (dbError) {
       console.error("⚠️ Failed to update txHash in DB:", dbError);
     }
@@ -652,26 +484,40 @@ app.post("/callback", async (c) => {
       success: true,
       txHash: tx?.hash,
       blockNumber: receipt?.blockNumber,
-      message: "Self Protocol verification processed and written to blockchain",
+      message: "Simulated verification completed successfully",
       userAddress,
-      verificationData: {
-        name: verificationData.name,
-        nationality: verificationData.nationality,
-        age: verificationData.age,
-        documentType: verificationData.documentType,
-        verifiedAt: verificationData.verifiedAt,
-      },
     });
   } catch (error) {
-    console.error("Error processing Self Protocol callback:", error);
+    console.error("Error in simulated verification:", error);
     return c.json(
       {
-        error: "Failed to process verification callback",
+        error: "Failed to process simulated verification",
         details: error instanceof Error ? error.message : "Unknown error",
       },
       500
     );
   }
+});
+
+/**
+ * POST /api/verification/callback
+ * Handle Self Protocol verification callback (currently not working with SimplePokketIdentityVerification)
+ */
+app.post("/callback", async (c) => {
+  console.log(
+    "⚠️ Self Protocol callback received, but SimplePokketIdentityVerification doesn't support direct callbacks"
+  );
+  console.log("Use /simulate-callback or /manual-verify instead for testing");
+
+  return c.json(
+    {
+      error:
+        "Self Protocol callbacks not supported with SimplePokketIdentityVerification contract",
+      suggestion:
+        "Use POST /verification/simulate-callback or /verification/manual-verify instead",
+    },
+    400
+  );
 });
 
 /**

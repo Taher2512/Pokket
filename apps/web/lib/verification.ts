@@ -140,6 +140,56 @@ export class SelfVerificationService {
   getConfig() {
     return VERIFICATION_CONFIG;
   }
+
+  /**
+   * Manually trigger verification for testing (with SimplePokketIdentityVerification)
+   */
+  async triggerManualVerification(
+    userAddress: string
+  ): Promise<{ success: boolean; message: string }> {
+    try {
+      const API_BASE_URL =
+        process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+      const response = await fetch(
+        `${API_BASE_URL}/verification/simulate-callback`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            userAddress,
+            verificationData: {
+              name: "Verified User",
+              nationality: "Indian",
+              age: 25,
+              documentType: "aadhar_card",
+            },
+          }),
+        }
+      );
+
+      const result = await response.json();
+
+      if (result.success) {
+        return {
+          success: true,
+          message: `Verification successful! Transaction: ${result.txHash}`,
+        };
+      } else {
+        return {
+          success: false,
+          message: result.error || "Manual verification failed",
+        };
+      }
+    } catch (error) {
+      console.error("Manual verification error:", error);
+      return {
+        success: false,
+        message: "Failed to trigger manual verification",
+      };
+    }
+  }
 }
 
 // Factory function to create verification service instances
