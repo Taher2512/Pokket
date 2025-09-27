@@ -29,6 +29,17 @@ model User {
   encryptedPrivateKeySolana String? @map("encrypted_private_key_solana")
   publicAddressSolana      String? @unique @map("public_address_solana")
   
+  // Self Protocol Identity Verification
+  isVerified           Boolean @default(false) @map("is_verified")
+  verifiedName         String? @map("verified_name")
+  verifiedNationality  String? @map("verified_nationality")
+  verifiedDateOfBirth  String? @map("verified_date_of_birth")
+  verifiedAge          Int? @map("verified_age")
+  verifiedDocumentType String? @map("verified_document_type")
+  verificationTxHash   String? @map("verification_tx_hash")
+  verifiedAt           DateTime? @map("verified_at")
+  selfUserIdentifier   String? @map("self_user_identifier")
+  
   // Last login tracking
   lastLoginAt DateTime? @map("last_login_at")
   

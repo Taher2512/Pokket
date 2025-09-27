@@ -1,11 +1,26 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
+import { useAuth } from "../contexts/AuthContext";
+import { apiService } from "../lib/api";
 
 interface QRPayload {
   name: string;
   ethAddress: string;
   solAddress: string;
+}
+
+interface ReceiverVerification {
+  address: string;
+  isVerified: boolean;
+  receiverInfo?: {
+    name?: string;
+    nationality?: string;
+    age?: number;
+    documentType?: string;
+    verifiedAt?: string;
+  };
+  message?: string;
 }
 
 interface PaymentModalProps {
@@ -17,6 +32,35 @@ export default function PaymentModal({
   paymentData,
   onClose,
 }: PaymentModalProps) {
+  const { user } = useAuth();
+  const [receiverVerification, setReceiverVerification] =
+    useState<ReceiverVerification | null>(null);
+  const [loadingVerification, setLoadingVerification] = useState(true);
+
+  // Fetch receiver verification status when modal opens
+  useEffect(() => {
+    const fetchReceiverVerification = async () => {
+      try {
+        setLoadingVerification(true);
+        const verification = await apiService.getReceiverVerification(
+          paymentData.ethAddress
+        );
+        setReceiverVerification(verification);
+      } catch (error) {
+        console.error("Error fetching receiver verification:", error);
+        setReceiverVerification({
+          address: paymentData.ethAddress,
+          isVerified: false,
+          message: "Failed to check verification status",
+        });
+      } finally {
+        setLoadingVerification(false);
+      }
+    };
+
+    fetchReceiverVerification();
+  }, [paymentData.ethAddress]);
+
   const handlePaymentMethod = (method: "pokket" | "base" | "phantom") => {
     // Here you would integrate with the actual payment methods
     switch (method) {
@@ -62,17 +106,165 @@ export default function PaymentModal({
           </button>
 
           <div className="text-center">
-            <div className="w-20 h-20 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+            <div className="w-20 h-20 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg relative">
               <span className="text-3xl font-bold text-white">
                 {paymentData.name.charAt(0).toUpperCase()}
               </span>
+              {/* Verification Badge */}
+              {!loadingVerification && receiverVerification?.isVerified && (
+                <div className="absolute -bottom-1 -right-1 w-7 h-7 bg-green-500 rounded-full flex items-center justify-center border-2 border-white">
+                  <svg
+                    className="w-4 h-4 text-white"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                </div>
+              )}
             </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-1">
-              Pay {paymentData.name}
+
+            <h2 className="text-2xl font-bold text-gray-900 mb-1 flex items-center justify-center gap-2">
+              Pay {receiverVerification?.receiverInfo?.name || paymentData.name}
+              {!loadingVerification && receiverVerification?.isVerified && (
+                <div className="flex items-center space-x-1 px-2 py-1 bg-green-100 text-green-800 rounded-lg text-xs font-medium">
+                  <svg
+                    className="w-3 h-3"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                  <span>Verified</span>
+                </div>
+              )}
             </h2>
-            <p className="text-gray-500 text-sm">Choose your payment method</p>
+
+            {/* Verification Details */}
+            {!loadingVerification && receiverVerification && (
+              <div className="mt-3">
+                {receiverVerification.isVerified ? (
+                  <div className="bg-green-50 border border-green-200 rounded-xl p-3">
+                    <div className="text-sm text-green-800">
+                      <div className="font-medium mb-1">
+                        ✅ Identity Verified
+                      </div>
+                      <div className="text-xs space-y-1">
+                        {receiverVerification.receiverInfo?.nationality && (
+                          <div>
+                            📍 {receiverVerification.receiverInfo.nationality}
+                          </div>
+                        )}
+                        {receiverVerification.receiverInfo?.age && (
+                          <div>
+                            👤 Age {receiverVerification.receiverInfo.age}
+                          </div>
+                        )}
+                        {receiverVerification.receiverInfo?.documentType && (
+                          <div>
+                            📄 {receiverVerification.receiverInfo.documentType}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="bg-gray-50 border border-gray-200 rounded-xl p-3">
+                    <div className="text-sm text-gray-600">
+                      <div className="font-medium mb-1">❓ Unverified User</div>
+                      <div className="text-xs">
+                        Identity not verified through Self Protocol
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {loadingVerification && (
+              <div className="mt-3 bg-gray-50 border border-gray-200 rounded-xl p-3">
+                <div className="text-sm text-gray-600 flex items-center justify-center gap-2">
+                  <div className="w-4 h-4 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin"></div>
+                  <span>Checking verification status...</span>
+                </div>
+              </div>
+            )}
+
+            <p className="text-gray-500 text-sm mt-2">
+              Choose your payment method
+            </p>
           </div>
         </div>
+
+        {/* User Verification Status */}
+        {user && (
+          <div className="px-6 mb-4">
+            <div className="bg-gray-50 rounded-2xl p-4">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium text-gray-700">
+                  Sender
+                </span>
+                {user.isVerified && (
+                  <div className="flex items-center space-x-1 px-2 py-1 bg-green-100 text-green-800 rounded-lg text-xs font-medium">
+                    <svg
+                      className="w-3 h-3"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                    <span>Verified</span>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex items-center space-x-3">
+                {user.avatar && (
+                  <img
+                    className="w-10 h-10 rounded-full"
+                    src={user.avatar}
+                    alt={user.name || "User avatar"}
+                  />
+                )}
+                <div className="flex-1">
+                  <div className="flex items-center space-x-2">
+                    <span className="font-medium text-gray-900">
+                      {user.isVerified && user.verifiedName
+                        ? user.verifiedName
+                        : user.name}
+                    </span>
+                  </div>
+
+                  {user.isVerified && (
+                    <div className="text-xs text-gray-600 mt-0.5">
+                      {user.verifiedNationality &&
+                        `${user.verifiedNationality} • `}
+                      {user.verifiedAge && `Age ${user.verifiedAge} • `}
+                      {user.verifiedDocumentType && user.verifiedDocumentType}
+                    </div>
+                  )}
+
+                  <div className="text-xs text-gray-500 mt-0.5">
+                    {user.publicAddress.slice(0, 8)}...
+                    {user.publicAddress.slice(-6)}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Payment Methods */}
         <div className="px-6 pb-6 space-y-3">

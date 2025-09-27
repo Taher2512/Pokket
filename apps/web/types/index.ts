@@ -28,6 +28,14 @@ export interface User {
   publicAddressSolana?: string;
   createdAt?: string;
   lastLoginAt?: string;
+  // Verification data from Self Protocol
+  isVerified?: boolean;
+  verifiedName?: string;
+  verifiedNationality?: string;
+  verifiedAge?: number;
+  verifiedDocumentType?: string;
+  verifiedAt?: string;
+  verificationTxHash?: string;
 }
 
 export interface AuthResponse {
