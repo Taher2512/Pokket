@@ -276,8 +276,14 @@ export default function PaymentModal({
             <div className="flex items-center justify-between relative z-10">
               <div className="flex items-center space-x-3">
                 <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
-                  {/* Pokket Logo - same as navbar */}
-                  <div className="w-5 h-5 bg-white rounded-sm transform rotate-45"></div>
+                  {/* Pokket Logo */}
+                  <img
+                    src="/logo1.svg"
+                    alt="Pokket"
+                    width="20"
+                    height="20"
+                    className="filter invert brightness-0 contrast-100"
+                  />
                 </div>
                 <div className="text-left">
                   <div className="font-semibold text-lg">Pokket</div>

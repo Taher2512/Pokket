@@ -58,9 +58,13 @@ export default function ResponsiveNavbar({
                 {/* Logo */}
                 <div className="flex items-center space-x-3 flex-shrink-0">
                   <Link href="/" className="flex items-center space-x-3">
-                    <div className="w-8 h-8 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center">
-                      <div className="w-4 h-4 bg-white rounded-sm transform rotate-45"></div>
-                    </div>
+                    <img
+                      src="/logo1.svg"
+                      alt="Pokket"
+                      width="32"
+                      height="32"
+                      className="transition-all duration-300 hover:scale-105"
+                    />
                     <span className="text-lg font-bold text-gray-900">
                       Pokket
                     </span>
@@ -138,9 +142,13 @@ export default function ResponsiveNavbar({
           <div className="flex items-center justify-between">
             {/* Logo */}
             <Link href="/" className="flex items-center space-x-2">
-              <div className="w-7 h-7 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg flex items-center justify-center">
-                <div className="w-3 h-3 bg-white rounded-sm transform rotate-45"></div>
-              </div>
+              <img
+                src="/logo1.svg"
+                alt="Pokket"
+                width="28"
+                height="28"
+                className="transition-all duration-300 hover:scale-105"
+              />
               <span className="text-lg font-bold text-gray-900">Pokket</span>
             </Link>
 
