@@ -106,52 +106,170 @@ export function Dashboard() {
       {/* Main Content */}
       <main className="pt-20 pb-20 md:pb-8 md:pt-28">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Hero Section */}
-          <div className="text-left mb-12">
-            <h1 className="text-4xl font-bold text-gray-900 mb-4">
-              Welcome, {user?.name?.split(" ")[0] || "User"}
-            </h1>
+          {/* Mobile Layout */}
+          <div className="md:hidden">
+            {/* Mobile Header */}
+            <div className="mb-6">
+              <h1 className="text-2xl font-bold text-gray-900 mb-2">
+                Hi, {user?.name?.split(" ")[0] || "User"}
+              </h1>
+              <p className="text-gray-600">What would you like to do today?</p>
+            </div>
 
-            {/* Volatility Warning */}
-            <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-4">
-              <div className="flex items-start space-x-3">
-                <svg
-                  className="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
+            {/* GPay-style Quick Actions */}
+            <div className="bg-white rounded-2xl p-6 mb-6 shadow-sm border border-gray-100">
+              <div className="grid grid-cols-4 gap-4">
+                <Link
+                  href="/send"
+                  className="flex flex-col items-center p-3 rounded-xl hover:bg-gray-50 transition-colors"
                 >
-                  <path
-                    fillRule="evenodd"
-                    d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-                <div>
-                  <p className="text-sm font-medium text-amber-900">
-                    Crypto volatility notice
-                  </p>
-                  <p className="text-sm text-amber-800 mt-1">
-                    Cryptocurrencies are highly volatile. Consider converting to
-                    stable PayPal USD (PYUSD) to protect against price
-                    fluctuations.
-                  </p>
+                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center mb-2">
+                    <svg
+                      className="w-6 h-6 text-white"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
+                      />
+                    </svg>
+                  </div>
+                  <span className="text-xs font-medium text-gray-700">
+                    Send
+                  </span>
+                </Link>
+
+                <Link
+                  href="/withdraw"
+                  className="flex flex-col items-center p-3 rounded-xl hover:bg-gray-50 transition-colors"
+                >
+                  <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center mb-2">
+                    <svg
+                      className="w-6 h-6 text-white"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M7 16l-4-4m0 0l4-4m-4 4h18"
+                      />
+                    </svg>
+                  </div>
+                  <span className="text-xs font-medium text-gray-700">
+                    Withdraw
+                  </span>
+                </Link>
+
+                <Link
+                  href="/swap"
+                  className="flex flex-col items-center p-3 rounded-xl hover:bg-gray-50 transition-colors"
+                >
+                  <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center mb-2">
+                    <svg
+                      className="w-6 h-6 text-white"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
+                      />
+                    </svg>
+                  </div>
+                  <span className="text-xs font-medium text-gray-700">
+                    Swap
+                  </span>
+                </Link>
+
+                <Link
+                  href="/receive"
+                  className="flex flex-col items-center p-3 rounded-xl hover:bg-gray-50 transition-colors"
+                >
+                  <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center mb-2">
+                    <svg
+                      className="w-6 h-6 text-white"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M12 4v16m8-8l-8 8-8-8"
+                      />
+                    </svg>
+                  </div>
+                  <span className="text-xs font-medium text-gray-700">
+                    Receive
+                  </span>
+                </Link>
+              </div>
+            </div>
+
+            {/* Mobile Portfolio */}
+            <TokenPortfolio />
+          </div>
+
+          {/* Desktop Layout */}
+          <div className="hidden md:block">
+            {/* Hero Section */}
+            <div className="text-left mb-12">
+              <h1 className="text-4xl font-bold text-gray-900 mb-4">
+                Welcome, {user?.name?.split(" ")[0] || "User"}
+              </h1>
+
+              {/* Volatility Warning */}
+              <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-4">
+                <div className="flex items-start space-x-3">
+                  <svg
+                    className="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                  <div>
+                    <p className="text-sm font-medium text-amber-900">
+                      Crypto volatility notice
+                    </p>
+                    <p className="text-sm text-amber-800 mt-1">
+                      Cryptocurrencies are highly volatile. Consider converting
+                      to stable PayPal USD (PYUSD) to protect against price
+                      fluctuations.
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
 
-          {/* Main Dashboard Grid */}
-          <div className="max-w-6xl mx-auto mb-16">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              {/* Portfolio Section - Left Side */}
-              <div className="order-2 lg:order-1">
-                <TokenPortfolio />
-              </div>
+            {/* Main Dashboard Grid */}
+            <div className="max-w-6xl mx-auto mb-16">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                {/* Portfolio Section - Left Side */}
+                <div className="order-2 lg:order-1">
+                  <TokenPortfolio />
+                </div>
 
-              {/* QR Code Section - Right Side */}
-              <div className="order-1 lg:order-2">
-                <div className="sticky top-32">
-                  <AddressQRCode className="shadow-2xl shadow-black/10" />
+                {/* QR Code Section - Right Side */}
+                <div className="order-1 lg:order-2">
+                  <div className="sticky top-32">
+                    <AddressQRCode className="shadow-2xl shadow-black/10" />
+                  </div>
                 </div>
               </div>
             </div>
