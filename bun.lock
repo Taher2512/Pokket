@@ -73,6 +73,7 @@
         "@repo/ui": "*",
         "@selfxyz/core": "^1.1.0-beta.4",
         "@selfxyz/qrcode": "^1.0.15",
+        "@solana/web3.js": "^1.98.4",
         "@tailwindcss/postcss": "^4.1.13",
         "axios": "^1.7.9",
         "clsx": "^2.1.1",

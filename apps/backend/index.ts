@@ -281,6 +281,64 @@ app.get("/user/tokens", authMiddleware, async (c) => {
   }
 });
 
+// Search users by name or email
+app.get("/users/search", authMiddleware, async (c) => {
+  try {
+    const userAuth = c.get("user") as any;
+    const query = c.req.query("q");
+
+    if (!query) {
+      console.log("Search request without query parameter");
+      return c.json({ users: [], query: "", error: "Search query is required" });
+    }
+
+    if (query.length < 2) {
+      console.log("Search query too short:", query);
+      return c.json({ users: [], query, error: "Search query must be at least 2 characters" });
+    }
+
+    const users = await dbService.searchUsers(query, userAuth.userId);
+
+    return c.json({
+      users: users.map(user => ({
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        avatar: user.avatar,
+        publicAddress: user.publicAddress,
+        publicAddressSolana: user.publicAddressSolana,
+      })),
+      query,
+    });
+  } catch (error) {
+    console.error("Error searching users:", error);
+    return c.json({ users: [], query: "", error: "Search temporarily unavailable" });
+  }
+});
+
+// Get recent contacts for the user
+app.get("/users/recent", authMiddleware, async (c) => {
+  try {
+    const userAuth = c.get("user") as any;
+
+    const recentContacts = await dbService.getRecentContacts(userAuth.userId);
+
+    return c.json({
+      users: recentContacts.map(user => ({
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        avatar: user.avatar,
+        publicAddress: user.publicAddress,
+        publicAddressSolana: user.publicAddressSolana,
+      })),
+    });
+  } catch (error) {
+    console.error("Error getting recent contacts:", error);
+    return c.json({ users: [], error: "Recent contacts temporarily unavailable" });
+  }
+});
+
 // Debug endpoint to get detailed token info
 app.get("/debug/user/address", authMiddleware, async (c) => {
   try {
