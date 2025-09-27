@@ -40,6 +40,27 @@ export function VerificationModal({
     setCurrentStep("error");
   };
 
+  const handleManualVerification = async () => {
+    try {
+      setCurrentStep("waiting");
+      const verificationService = createVerificationService(userAddress);
+
+      const result =
+        await verificationService.triggerManualVerification(userAddress);
+
+      if (result.success) {
+        setCurrentStep("success");
+        onVerificationComplete();
+      } else {
+        setError(result.message);
+        setCurrentStep("error");
+      }
+    } catch (error) {
+      setError("Failed to complete manual verification");
+      setCurrentStep("error");
+    }
+  };
+
   const startVerificationPolling = async () => {
     try {
       const verificationService = createVerificationService(userAddress);
@@ -144,6 +165,23 @@ export function VerificationModal({
                 </li>
                 <li>4. Wait for verification to complete</li>
               </ol>
+            </div>
+
+            {/* Testing Option */}
+            <div className="bg-blue-50 p-4 rounded-lg mb-6 text-left">
+              <h4 className="font-medium mb-2 text-blue-800">
+                Testing Option:
+              </h4>
+              <p className="text-sm text-blue-600 mb-3">
+                For testing purposes, you can simulate the verification process
+                without using the Self app:
+              </p>
+              <button
+                onClick={handleManualVerification}
+                className="px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                Test Verification (Demo)
+              </button>
             </div>
 
             <button
