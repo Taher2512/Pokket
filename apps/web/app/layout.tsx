@@ -8,6 +8,8 @@ export const metadata: Metadata = {
     "Create and manage Ethereum wallets and send crypto via shareable links",
 };
 
+console.log("hi");
+
 export default function RootLayout({
   children,
 }: Readonly<{
