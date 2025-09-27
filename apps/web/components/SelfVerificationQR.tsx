@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { SelfQRcodeWrapper, SelfAppBuilder } from "@selfxyz/qrcode";
 import { getUniversalLink } from "@selfxyz/core";
 import { createVerificationService } from "../lib/verification";
+import { ethers } from "ethers";
 
 interface SelfVerificationQRProps {
   userAddress: string;
@@ -19,10 +20,13 @@ export function SelfVerificationQR({
   const [selfApp, setSelfApp] = useState<any>(null);
   const [universalLink, setUniversalLink] = useState("");
   const [error, setError] = useState<string>("");
-
+ const [userId] = useState(ethers.ZeroAddress);
   useEffect(() => {
-    initializeSelfApp();
-  }, [userAddress]);
+    if(userId) {
+      console.log("Initializing Self app with userId:", userId);
+      initializeSelfApp();
+    }
+  }, [userId]);
 
   const initializeSelfApp = async () => {
     try {
@@ -43,8 +47,8 @@ export function SelfVerificationQR({
           process.env.NEXT_PUBLIC_SELF_SCOPE || "pokket-identity-verification",
         endpoint: contractAddress,
         endpointType: "staging_celo", // Celo testnet
-        userIdType: "hex",
-        userId: userAddress,
+        // userIdType: "hex",
+        userId: userId,
         logoBase64: "https://i.postimg.cc/mrmVf9hm/self.png", // Self protocol logo
         userDefinedData: JSON.stringify({
           platform: "pokket",
@@ -86,7 +90,7 @@ export function SelfVerificationQR({
   };
 
   const handleSuccess = () => {
-    console.log("✅ Identity verification successful!");
+    console.log("✅ Identity verification successful!-v1");
     onSuccess?.();
   };
 

@@ -2,12 +2,18 @@
 
 import React, { useState, useRef, useCallback, useEffect } from "react";
 import jsQR from "jsqr";
-import PaymentModal from "./PaymentModal";
+import NetworkSelectionModal from "./NetworkSelectionModal";
 
 interface QRPayload {
   name: string;
   ethAddress: string;
   solAddress: string;
+  // Optional payment details
+  amount?: string;
+  tokenSymbol?: string;
+  tokenAddress?: string;
+  network?: "ethereum" | "base" | "solana";
+  decimals?: number;
 }
 
 export default function QRPaymentFlow() {
@@ -63,7 +69,7 @@ export default function QRPaymentFlow() {
   const processQRCode = useCallback((qrText: string) => {
     // Sanitize the QR text by removing control characters
     const sanitizedText = qrText
-      .replace(/[\x00-\x1F\x7F-\x9F]/g, "") // Remove control characters
+      .replace(/[\x00-\x1F\x7F-\x9F]/g, "") // eslint-disable-line no-control-regex
       .trim(); // Remove leading/trailing whitespace
 
     try {
@@ -78,7 +84,7 @@ export default function QRPaymentFlow() {
           "Invalid QR code format. Please ensure it contains valid name, ethAddress, and solAddress fields."
         );
       }
-    } catch (err) {
+    } catch {
       setError("Invalid QR code. Please scan a valid payment QR code.");
     }
   }, []);
@@ -544,7 +550,7 @@ export default function QRPaymentFlow() {
 
       {/* Payment Modal */}
       {paymentData && (
-        <PaymentModal paymentData={paymentData} onClose={resetFlow} />
+        <NetworkSelectionModal paymentData={paymentData} onClose={resetFlow} />
       )}
     </>
   );
