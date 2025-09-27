@@ -33,7 +33,7 @@ app.use(
     origin: [
       "http://localhost:3000",
       "http://localhost:3001",
-      "https://pokket.vercel.app/",
+      "https://pokket.vercel.app",
       "https://pokket.onrender.com",
     ],
     credentials: true,
