@@ -3,6 +3,8 @@
 import React, { ReactNode } from "react";
 import { AuthProvider, useAuth } from "../contexts/AuthContext";
 import { VerificationProvider } from "../contexts/VerificationContext";
+import { WalletProvider } from "../contexts/WalletContext";
+import { PhantomProvider } from "../contexts/PhantomContext";
 
 interface AppProvidersProps {
   children: ReactNode;
@@ -24,7 +26,11 @@ function VerificationWrapper({ children }: { children: ReactNode }) {
 export function AppProviders({ children }: AppProvidersProps) {
   return (
     <AuthProvider>
-      <VerificationWrapper>{children}</VerificationWrapper>
+      <WalletProvider>
+        <PhantomProvider>
+          <VerificationWrapper>{children}</VerificationWrapper>
+        </PhantomProvider>
+      </WalletProvider>
     </AuthProvider>
   );
 }
