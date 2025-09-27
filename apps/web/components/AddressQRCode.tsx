@@ -26,6 +26,8 @@ export default function AddressQRCode({ className = "" }: AddressQRCodeProps) {
     addressInfo?.ethereum.address || ""
   );
 
+  console.log("hi");
+
   useEffect(() => {
     fetchAddresses();
   }, []);
