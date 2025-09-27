@@ -9,7 +9,20 @@ import { dbService } from "./services/database";
 import { swapApp } from "./routes/swap";
 import { verificationRoutes } from "./routes/verification";
 
-const app = new Hono();
+// Type definition for authenticated user context
+interface AuthContext {
+  userId: string;
+  email: string;
+}
+
+// Type definition for Hono context with user authentication
+type AppContext = {
+  Variables: {
+    user: AuthContext;
+  };
+};
+
+const app = new Hono<AppContext>();
 const authService = new AuthService();
 const tokenService = new TokenService();
 
@@ -101,7 +114,7 @@ const authMiddleware = async (c: any, next: any) => {
     }
 
     const token = authorization.replace("Bearer ", "");
-    const decoded = authService.verifyJWT(token);
+    const decoded = authService.verifyJWT(token) as AuthContext;
 
     // Attach user info to context
     c.set("user", decoded);
@@ -115,7 +128,7 @@ const authMiddleware = async (c: any, next: any) => {
 // Protected routes
 app.get("/user/profile", authMiddleware, async (c) => {
   try {
-    const userAuth = c.get("user") as any;
+    const userAuth = c.get("user");
     const user = await dbService.findUserById(userAuth.userId);
 
     if (!user) {
@@ -132,6 +145,14 @@ app.get("/user/profile", authMiddleware, async (c) => {
         publicAddressSolana: user.publicAddressSolana,
         createdAt: user.createdAt,
         lastLoginAt: user.lastLoginAt,
+        // Verification status and data
+        isVerified: user.isVerified,
+        verifiedName: user.verifiedName,
+        verifiedNationality: user.verifiedNationality,
+        verifiedAge: user.verifiedAge,
+        verifiedDocumentType: user.verifiedDocumentType,
+        verifiedAt: user.verifiedAt,
+        verificationTxHash: user.verificationTxHash,
       },
     });
   } catch (error) {
@@ -143,7 +164,7 @@ app.get("/user/profile", authMiddleware, async (c) => {
 // Get user's wallet private keys (for frontend operations)
 app.get("/user/wallet", authMiddleware, async (c) => {
   try {
-    const userAuth = c.get("user") as any;
+    const userAuth = c.get("user");
     const user = await dbService.findUserById(userAuth.userId);
 
     if (!user) {
@@ -189,7 +210,7 @@ app.get("/user/wallet", authMiddleware, async (c) => {
 // Get user's addresses (for QR codes and display)
 app.get("/user/addresses", authMiddleware, async (c) => {
   try {
-    const userAuth = c.get("user") as any;
+    const userAuth = c.get("user");
     const user = await dbService.findUserById(userAuth.userId);
 
     if (!user) {
@@ -218,7 +239,7 @@ app.get("/user/addresses", authMiddleware, async (c) => {
 // Get user's token portfolio
 app.get("/user/portfolio", authMiddleware, async (c) => {
   try {
-    const userAuth = c.get("user") as any;
+    const userAuth = c.get("user");
     const user = await dbService.findUserById(userAuth.userId);
 
     if (!user) {
@@ -240,7 +261,7 @@ app.get("/user/portfolio", authMiddleware, async (c) => {
 // Get user's ETH balance only
 app.get("/user/eth-balance", authMiddleware, async (c) => {
   try {
-    const userAuth = c.get("user") as any;
+    const userAuth = c.get("user");
     const user = await dbService.findUserById(userAuth.userId);
 
     if (!user) {
@@ -262,7 +283,7 @@ app.get("/user/eth-balance", authMiddleware, async (c) => {
 // Get user's token balances only
 app.get("/user/tokens", authMiddleware, async (c) => {
   try {
-    const userAuth = c.get("user") as any;
+    const userAuth = c.get("user");
     const user = await dbService.findUserById(userAuth.userId);
 
     if (!user) {
@@ -284,7 +305,7 @@ app.get("/user/tokens", authMiddleware, async (c) => {
 // Debug endpoint to get detailed token info
 app.get("/debug/user/address", authMiddleware, async (c) => {
   try {
-    const userAuth = c.get("user") as any;
+    const userAuth = c.get("user");
     const user = await dbService.findUserById(userAuth.userId);
 
     if (!user) {
@@ -309,7 +330,7 @@ app.get("/debug/user/address", authMiddleware, async (c) => {
 // Check balance for a specific token address
 app.post("/user/check-token", authMiddleware, async (c) => {
   try {
-    const userAuth = c.get("user") as any;
+    const userAuth = c.get("user");
     const user = await dbService.findUserById(userAuth.userId);
 
     if (!user) {
@@ -372,6 +393,81 @@ app.get("/admin/users-with-solana", async (c) => {
 
 // Mount swap routes
 app.route("/swap", swapApp);
+
+// Debug endpoint to check user verification by address
+app.get("/debug/user/verification/:address", async (c) => {
+  try {
+    const address = c.req.param("address");
+
+    if (!address || !/^0x[a-fA-F0-9]{40}$/.test(address)) {
+      return c.json({ error: "Invalid Ethereum address" }, 400);
+    }
+
+    const user = await dbService.getUserVerificationByAddress(address);
+
+    if (!user) {
+      return c.json({ error: "User not found" }, 404);
+    }
+
+    return c.json({
+      address,
+      user,
+      message: "User verification data retrieved successfully",
+    });
+  } catch (error) {
+    console.error("Error getting user verification:", error);
+    return c.json({ error: "Failed to get user verification" }, 500);
+  }
+});
+
+// Public endpoint to check receiver verification status for payments
+app.get("/user/receiver-verification/:address", async (c) => {
+  const address = c.req.param("address");
+
+  try {
+    if (!address || !/^0x[a-fA-F0-9]{40}$/i.test(address)) {
+      return c.json({ error: "Invalid Ethereum address" }, 400);
+    }
+
+    // Normalize address to match database format
+    const normalizedAddress = address.toLowerCase();
+    const user = await dbService.getUserVerificationByAddress(address);
+
+    if (!user) {
+      return c.json({
+        address,
+        isVerified: false,
+        message: "Receiver not found in our system",
+      });
+    }
+
+    return c.json({
+      address,
+      isVerified: user.isVerified || false,
+      receiverInfo: user.isVerified
+        ? {
+            name: user.verifiedName || user.name,
+            nationality: user.verifiedNationality,
+            age: user.verifiedAge,
+            documentType: user.verifiedDocumentType,
+            verifiedAt: user.verifiedAt,
+          }
+        : {
+            name: user.name, // Show basic name even if not verified
+          },
+    });
+  } catch (error) {
+    console.error("Error getting receiver verification:", error);
+    return c.json(
+      {
+        address,
+        isVerified: false,
+        error: "Failed to check verification status",
+      },
+      500
+    );
+  }
+});
 
 // Mount verification routes
 app.route("/verification", verificationRoutes);

@@ -66,6 +66,29 @@ export class DatabaseService {
   }
 
   /**
+   * Find user by Ethereum address
+   */
+  async findUserByAddress(address: string) {
+    try {
+      // Try both original case and lowercase since addresses may be stored differently
+      let user = await prisma.user.findUnique({
+        where: { publicAddress: address },
+      });
+
+      if (!user) {
+        user = await prisma.user.findUnique({
+          where: { publicAddress: address.toLowerCase() },
+        });
+      }
+
+      return user;
+    } catch (error) {
+      console.error("Error finding user by address:", error);
+      throw new Error("Database error");
+    }
+  }
+
+  /**
    * Create a new user
    */
   async createUser(userData: CreateUserData) {
@@ -175,6 +198,71 @@ export class DatabaseService {
       });
     } catch (error) {
       console.error("Error getting users with Solana addresses:", error);
+      throw new Error("Database error");
+    }
+  }
+
+  /**
+   * Update user verification status and data from Self Protocol
+   */
+  async updateUserVerification(
+    userAddress: string,
+    verificationData: {
+      name?: string;
+      nationality?: string;
+      dateOfBirth?: string;
+      age?: number;
+      documentType?: string;
+      txHash?: string;
+      selfUserIdentifier?: string;
+    }
+  ) {
+    try {
+      return await prisma.user.updateMany({
+        where: { publicAddress: userAddress },
+        data: {
+          isVerified: true,
+          verifiedName: verificationData.name,
+          verifiedNationality: verificationData.nationality,
+          verifiedDateOfBirth: verificationData.dateOfBirth,
+          verifiedAge: verificationData.age,
+          verifiedDocumentType: verificationData.documentType,
+          verificationTxHash: verificationData.txHash,
+          verifiedAt: new Date(),
+          selfUserIdentifier: verificationData.selfUserIdentifier,
+        },
+      });
+    } catch (error) {
+      console.error("Error updating user verification:", error);
+      throw new Error("Failed to update user verification");
+    }
+  }
+
+  /**
+   * Get user verification details by address
+   */
+  async getUserVerificationByAddress(address: string) {
+    try {
+      return await prisma.user.findFirst({
+        where: { publicAddress: address },
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          publicAddress: true,
+          isVerified: true,
+          verifiedName: true,
+          verifiedNationality: true,
+          verifiedDateOfBirth: true,
+          verifiedAge: true,
+          verifiedDocumentType: true,
+          verificationTxHash: true,
+          verifiedAt: true,
+          selfUserIdentifier: true,
+        },
+      });
+    } catch (error) {
+      console.error("Error getting user verification by address:", error);
       throw new Error("Database error");
     }
   }

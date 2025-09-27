@@ -7,8 +7,9 @@ const VERIFICATION_CONFIG = {
   endpointType: "staging_celo" as const, // Using testnet
   userIdType: "hex" as const,
   version: 2 as const,
-  appName: "Pokket Wallet",
-  scope: "pokket-identity-verification", // Max 30 characters
+  appName: process.env.NEXT_PUBLIC_SELF_APP_NAME || "Pokket Wallet",
+  scope: process.env.NEXT_PUBLIC_SELF_SCOPE || "1", // Must match the deployed contract scope
+  callbackUrl: process.env.NEXT_PUBLIC_SELF_CALLBACK_URL || "", // Callback for verification completion
 
   // Aadhar card verification configuration for Indian users
   disclosures: {

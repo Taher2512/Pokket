@@ -180,6 +180,35 @@ class ApiService {
     this.removeAuthToken();
   }
 
+  // Check receiver verification status for payments
+  async getReceiverVerification(address: string): Promise<{
+    address: string;
+    isVerified: boolean;
+    receiverInfo?: {
+      name?: string;
+      nationality?: string;
+      age?: number;
+      documentType?: string;
+      verifiedAt?: string;
+    };
+    message?: string;
+  }> {
+    try {
+      const response = await axios.get(
+        `${this.baseURL}/user/receiver-verification/${address}`
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Error getting receiver verification:", error);
+      // Return unverified status on error
+      return {
+        address,
+        isVerified: false,
+        message: "Failed to check verification status",
+      };
+    }
+  }
+
   // Check if user is authenticated
   isAuthenticated(): boolean {
     return !!this.getAuthToken();

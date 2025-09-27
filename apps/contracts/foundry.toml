@@ -2,8 +2,6 @@
 src = "src"
 out = "out"
 libs = ["lib"]
-remappings = [
-    "@selfxyz/contracts/contracts/=lib/proof-of-passport/contracts/contracts/"
-]
+remappings = []
 
 # See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options
