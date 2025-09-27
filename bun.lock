@@ -1,5 +1,5 @@
 {
-  "lockfileVersion": 0,
+  "lockfileVersion": 1,
   "workspaces": {
     "": {
       "name": "Pokket",
@@ -24,9 +24,10 @@
         "viem": "^2.37.8",
       },
       "devDependencies": {
-        "@types/bun": "latest",
+        "@types/bun": "^1.1.12",
         "@types/crypto-js": "^4.2.2",
         "@types/jsonwebtoken": "^9.0.7",
+        "@types/node": "^20.17.6",
       },
       "peerDependencies": {
         "typescript": "^5",
@@ -58,8 +59,8 @@
         "viem": "^2.37.7",
       },
       "devDependencies": {
-        "@types/bun": "latest",
-        "@types/node": "^20.0.0",
+        "@types/bun": "^1.1.12",
+        "@types/node": "^20.17.6",
       },
       "peerDependencies": {
         "typescript": "^5",
@@ -70,7 +71,7 @@
       "version": "0.1.0",
       "dependencies": {
         "@heroicons/react": "^2.2.0",
-        "@repo/ui": "packages/ui",
+        "@repo/ui": "*",
         "@selfxyz/core": "^1.1.0-beta.4",
         "@selfxyz/qrcode": "^1.0.15",
         "@tailwindcss/postcss": "^4.1.13",
@@ -91,8 +92,8 @@
         "tailwindcss": "^4.1.13",
       },
       "devDependencies": {
-        "@repo/eslint-config": "packages/eslint-config",
-        "@repo/typescript-config": "packages/typescript-config",
+        "@repo/eslint-config": "*",
+        "@repo/typescript-config": "*",
         "@types/js-cookie": "^3.0.6",
         "@types/node": "^22.15.3",
         "@types/qrcode": "^1.5.5",
@@ -145,8 +146,8 @@
         "react-dom": "^19.1.0",
       },
       "devDependencies": {
-        "@repo/eslint-config": "packages/eslint-config",
-        "@repo/typescript-config": "packages/typescript-config",
+        "@repo/eslint-config": "*",
+        "@repo/typescript-config": "*",
         "@types/node": "^22.15.3",
         "@types/react": "19.1.0",
         "@types/react-dom": "19.1.1",
@@ -476,11 +477,11 @@
 
     "@prisma/get-platform": ["@prisma/get-platform@6.16.2", "", { "dependencies": { "@prisma/debug": "6.16.2" } }, "sha512-U/P36Uke5wS7r1+omtAgJpEB94tlT4SdlgaeTc6HVTTT93pXj7zZ+B/cZnmnvjcNPfWddgoDx8RLjmQwqGDYyA=="],
 
-    "@repo/eslint-config": ["@repo/eslint-config@workspace:packages/eslint-config", { "devDependencies": { "@eslint/js": "^9.34.0", "@next/eslint-plugin-next": "^15.5.0", "eslint": "^9.34.0", "eslint-config-prettier": "^10.1.1", "eslint-plugin-only-warn": "^1.1.0", "eslint-plugin-react": "^7.37.5", "eslint-plugin-react-hooks": "^5.2.0", "eslint-plugin-turbo": "^2.5.0", "globals": "^16.3.0", "typescript": "^5.9.2", "typescript-eslint": "^8.40.0" } }],
+    "@repo/eslint-config": ["@repo/eslint-config@workspace:packages/eslint-config"],
 
-    "@repo/typescript-config": ["@repo/typescript-config@workspace:packages/typescript-config", {}],
+    "@repo/typescript-config": ["@repo/typescript-config@workspace:packages/typescript-config"],
 
-    "@repo/ui": ["@repo/ui@workspace:packages/ui", { "dependencies": { "react": "^19.1.0", "react-dom": "^19.1.0" }, "devDependencies": { "@repo/eslint-config": "packages/eslint-config", "@repo/typescript-config": "packages/typescript-config", "@types/node": "^22.15.3", "@types/react": "19.1.0", "@types/react-dom": "19.1.1", "eslint": "^9.34.0", "typescript": "5.9.2" } }],
+    "@repo/ui": ["@repo/ui@workspace:packages/ui"],
 
     "@scure/base": ["@scure/base@1.2.6", "", {}, "sha512-g/nm5FgUa//MCj1gV09zTJTaM6KBAHqLN907YVQqf7zC49+DcO4B1so4ZX07Ef10Twr6nuqYEH9GEggFXA4Fmg=="],
 
@@ -732,7 +733,7 @@
 
     "b4a": ["b4a@1.7.3", "", { "peerDependencies": { "react-native-b4a": "*" }, "optionalPeers": ["react-native-b4a"] }, "sha512-5Q2mfq2WfGuFp3uS//0s6baOJLMoVduPYVeNmDYxu5OUA1/cBfvr2RIS7vi62LdNj/urk1hfmj867I3qt6uZ7Q=="],
 
-    "backend": ["backend@workspace:apps/backend", { "dependencies": { "@solana/web3.js": "^1.98.4", "axios": "^1.12.2", "crypto-js": "^4.2.0", "db": "*", "dotenv": "^17.2.2", "ethers": "^6.15.0", "googleapis": "^144.0.0", "hono": "^4.6.16", "jsonwebtoken": "^9.0.2", "viem": "^2.37.8" }, "devDependencies": { "@types/bun": "latest", "@types/crypto-js": "^4.2.2", "@types/jsonwebtoken": "^9.0.7" }, "peerDependencies": { "typescript": "^5" } }],
+    "backend": ["backend@workspace:apps/backend"],
 
     "balanced-match": ["balanced-match@1.0.2", "", {}, "sha512-3oSeUO0TMV67hN1AmbXsK4yaqU7tjiHlbxRDZOpH0KW9+CeX4bRAaX0Anxt0tx2MrpRpWwQaPwIlISEJhYU5Pw=="],
 
@@ -856,7 +857,7 @@
 
     "consola": ["consola@3.4.2", "", {}, "sha512-5IKcdX0nnYavi6G7TtOhwkYzyjfJlatbjMjuLSfE2kYT5pMDOilZ4OvMhi637CcDICTmz3wARPoyhqyX1Y+XvA=="],
 
-    "contracts": ["contracts@workspace:apps/contracts", { "dependencies": { "@selfxyz/contracts": "^1.2.1" }, "devDependencies": { "@types/bun": "latest" }, "peerDependencies": { "typescript": "^5" } }],
+    "contracts": ["contracts@workspace:apps/contracts"],
 
     "cookie": ["cookie@0.4.2", "", {}, "sha512-aSWTXFzaKWkvHO1Ny/s+ePFpvKsPnjc551iI41v3ny/ow6tBG5Vd+FuqGNhh1LxOmVzOlGUriIlOaokOvhaStA=="],
 
@@ -882,7 +883,7 @@
 
     "data-view-byte-offset": ["data-view-byte-offset@1.0.1", "", { "dependencies": { "call-bound": "^1.0.2", "es-errors": "^1.3.0", "is-data-view": "^1.0.1" } }, "sha512-BS8PfmtDGnrgYdOonGZQdLZslWIeCGFP9tpan0hi1Co2Zr2NKADsvGYA8XxuG/4UWgJ6Cjtv+YJnB6MM69QGlQ=="],
 
-    "db": ["db@workspace:packages/db", { "dependencies": { "@prisma/client": "6.16.2" }, "devDependencies": { "@types/bun": "latest", "prisma": "^6.16.2" }, "peerDependencies": { "typescript": "^5" } }],
+    "db": ["db@workspace:packages/db"],
 
     "debug": ["debug@4.4.3", "", { "dependencies": { "ms": "^2.1.3" } }, "sha512-RGwwWnwQvkVfavKVt22FGLw+xYSdzARwm0ru6DhTVA3umU5hZc28V3kO4stgYryrTlLpuvgI9GiijltAjNbcqA=="],
 
@@ -1508,7 +1509,7 @@
 
     "pngjs": ["pngjs@5.0.0", "", {}, "sha512-40QW5YalBNfQo5yRYmiw7Yz6TKKVr3h6970B2YE+3fQpsWcrbj1PzJgxeJ19DRQjhMbKPIuMY8rFaXc8moolVw=="],
 
-    "poller": ["poller@workspace:apps/poller", { "dependencies": { "@1inch/byte-utils": "^3.1.0", "@1inch/cross-chain-sdk": "^1.0.2", "@coral-xyz/anchor": "^0.31.1", "@solana/spl-token": "^0.4.14", "@solana/web3.js": "^1.98.4", "axios": "^1.12.2", "crypto-js": "^4.2.0", "dotenv": "^16.4.5", "viem": "^2.37.7" }, "devDependencies": { "@types/bun": "latest", "@types/node": "^20.0.0" }, "peerDependencies": { "typescript": "^5" } }],
+    "poller": ["poller@workspace:apps/poller"],
 
     "poseidon-lite": ["poseidon-lite@0.3.0", "", {}, "sha512-ilJj4MIve4uBEG7SrtPqUUNkvpJ/pLVbndxa0WvebcQqeIhe+h72JR4g0EvwchUzm9sOQDlOjiDNmRAgxNZl4A=="],
 
@@ -1806,7 +1807,7 @@
 
     "wasmcurves": ["wasmcurves@0.2.2", "", { "dependencies": { "wasmbuilder": "0.0.16" } }, "sha512-JRY908NkmKjFl4ytnTu5ED6AwPD+8VJ9oc94kdq7h5bIwbj0L4TDJ69mG+2aLs2SoCmGfqIesMWTEJjtYsoQXQ=="],
 
-    "web": ["web@workspace:apps/web", { "dependencies": { "@heroicons/react": "^2.2.0", "@repo/ui": "packages/ui", "@selfxyz/core": "^1.1.0-beta.4", "@selfxyz/qrcode": "^1.0.15", "@tailwindcss/postcss": "^4.1.13", "axios": "^1.7.9", "clsx": "^2.1.1", "ethers": "^6.15.0", "framer-motion": "^12.23.22", "js-cookie": "^3.0.5", "jsqr": "^1.4.0", "lucide-react": "^0.544.0", "next": "^15.5.0", "postcss": "^8.5.6", "qrcode": "^1.5.4", "react": "^19.1.0", "react-dom": "^19.1.0", "react-qr-code": "^2.0.18", "tailwind-merge": "^2.5.4", "tailwindcss": "^4.1.13" }, "devDependencies": { "@repo/eslint-config": "packages/eslint-config", "@repo/typescript-config": "packages/typescript-config", "@types/js-cookie": "^3.0.6", "@types/node": "^22.15.3", "@types/qrcode": "^1.5.5", "@types/react": "19.1.0", "@types/react-dom": "19.1.1", "autoprefixer": "^10.4.20", "eslint": "^9.34.0", "typescript": "5.9.2" } }],
+    "web": ["web@workspace:apps/web"],
 
     "web-worker": ["web-worker@1.2.0", "", {}, "sha512-PgF341avzqyx60neE9DD+XS26MMNMoUQRz9NOZwW32nPQrF6p77f1htcnjBSEV8BGMKZ16choqUG4hyI0Hx7mA=="],
 
@@ -2003,6 +2004,8 @@
     "asn1.js/bn.js": ["bn.js@4.12.2", "", {}, "sha512-n4DSx829VRTRByMRGdjQ9iqsN0Bh4OolPsFnaZBLcbi8iXcB+kJ9s7EnRt4wILZNV3kPLHkRVfOc/HvhC3ovDw=="],
 
     "asn1js/tslib": ["tslib@2.8.1", "", {}, "sha512-oJFu94HQb+KVduSUQL7wnpmqnfmLsOA/nAh6b6EH0wCEoK0/mPeXU6c3wKDV83MkOuHPRHtSXKKU99IBazS/2w=="],
+
+    "backend/@types/node": ["@types/node@20.19.17", "", { "dependencies": { "undici-types": "~6.21.0" } }, "sha512-gfehUI8N1z92kygssiuWvLiwcbOB3IRktR6hTDgJlXMYh5OvkPSRmgfoBUmfZt+vhwJtX7v1Yw4KvvAf7c5QKQ=="],
 
     "boxen/type-fest": ["type-fest@0.20.2", "", {}, "sha512-Ne+eE4r0/iWnpAxD852z3A+N0Bt5RN//NjJwRd2VFHEmrywxf5vsZlh4R6lixl6B+wz/8d+maTSAkN1FIkI3LQ=="],
 
