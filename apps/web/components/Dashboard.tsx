@@ -177,10 +177,18 @@ export function Dashboard() {
                   </svg>
                 </div>
                 <h3 className="text-2xl font-bold text-gray-900 mb-3">
+<<<<<<< HEAD
                   Send Money
                 </h3>
                 <p className="text-gray-600 mb-6 max-w-md mx-auto">
                   Send cryptocurrency to contacts or scan QR codes instantly
+=======
+                  Send via QR Code
+                </h3>
+                <p className="text-gray-600 mb-6 max-w-md mx-auto">
+                  Scan QR codes or upload images to send payments instantly to
+                  any wallet address
+>>>>>>> e9f2cbf2b6272fa084ee41710d5737392ecb95b7
                 </p>
                 <Link
                   href="/send"
@@ -199,7 +207,11 @@ export function Dashboard() {
                       d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
                     />
                   </svg>
+<<<<<<< HEAD
                   <span>Send Money</span>
+=======
+                  <span>Start Sending</span>
+>>>>>>> e9f2cbf2b6272fa084ee41710d5737392ecb95b7
                 </Link>
               </div>
             </div>
