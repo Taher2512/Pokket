@@ -1,15 +1,12 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Disable font optimization to avoid lightningcss native binary issues on Vercel
+  // Disable font optimization to avoid lightningcss issues on Vercel
   optimizeFonts: false,
   
-  // Use SWC for better performance and compatibility
-  swcMinify: true,
-  
-  // Transpile dependencies if needed
+  // Transpile packages if needed
   transpilePackages: ['@selfxyz/core', '@selfxyz/qrcode'],
   
-  // Configure webpack for better ESM handling
+  // Configure webpack for Node.js modules
   webpack: (config) => {
     config.resolve.fallback = {
       ...config.resolve.fallback,
