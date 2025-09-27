@@ -28,6 +28,14 @@ export interface User {
   publicAddressSolana?: string;
   createdAt?: string;
   lastLoginAt?: string;
+  // Verification data from Self Protocol
+  isVerified?: boolean;
+  verifiedName?: string;
+  verifiedNationality?: string;
+  verifiedAge?: number;
+  verifiedDocumentType?: string;
+  verifiedAt?: string;
+  verificationTxHash?: string;
 }
 
 export interface AuthResponse {
@@ -58,14 +66,21 @@ export interface AddressInfo {
   } | null;
 }
 
-export interface AddressInfo {
-  ethereum: {
-    address: string;
-    network: string;
-    chainId: number;
-  };
-  solana: {
-    address: string;
-    network: string;
-  } | null;
+// Wallet provider type definitions
+declare global {
+  interface Window {
+    ethereum?: {
+      isMetaMask?: boolean;
+      isCoinbaseWallet?: boolean;
+      request: (args: { method: string; params?: any[] }) => Promise<any>;
+    };
+    solana?: {
+      isPhantom?: boolean;
+      connect: () => Promise<{ publicKey: string }>;
+      disconnect: () => Promise<void>;
+      signTransaction: (transaction: any) => Promise<any>;
+      signAllTransactions: (transactions: any[]) => Promise<any[]>;
+      request: (args: { method: string; params?: any }) => Promise<any>;
+    };
+  }
 }

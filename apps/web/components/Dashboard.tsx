@@ -222,9 +222,13 @@ export function Dashboard() {
             <div className="bg-white/80 backdrop-blur-xl border border-gray-200/60 rounded-3xl p-8 shadow-xl shadow-black/5">
               <div className="text-center">
                 <div className="flex items-center justify-center space-x-3 mb-4">
-                  <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center">
-                    <div className="w-5 h-5 bg-white rounded-md transform rotate-45"></div>
-                  </div>
+                  <img
+                    src="/logo1.svg"
+                    alt="Pokket"
+                    width="40"
+                    height="40"
+                    className="transition-all duration-300 hover:scale-105"
+                  />
                   <span className="text-2xl font-bold text-gray-900">
                     Pokket
                   </span>

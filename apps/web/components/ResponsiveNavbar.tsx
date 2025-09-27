@@ -58,9 +58,13 @@ export default function ResponsiveNavbar({
                 {/* Logo */}
                 <div className="flex items-center space-x-3 flex-shrink-0">
                   <Link href="/" className="flex items-center space-x-3">
-                    <div className="w-8 h-8 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center">
-                      <div className="w-4 h-4 bg-white rounded-sm transform rotate-45"></div>
-                    </div>
+                    <img
+                      src="/logo1.svg"
+                      alt="Pokket"
+                      width="32"
+                      height="32"
+                      className="transition-all duration-300 hover:scale-105"
+                    />
                     <span className="text-lg font-bold text-gray-900">
                       Pokket
                     </span>
@@ -74,6 +78,12 @@ export default function ResponsiveNavbar({
                   </Link>
                   <Link href="/send" className={getActiveClass("/send")}>
                     Send
+                  </Link>
+                  <Link
+                    href="/withdraw"
+                    className={getActiveClass("/withdraw")}
+                  >
+                    Withdraw
                   </Link>
                   <Link href="/swap" className={getActiveClass("/swap")}>
                     Swap
@@ -138,9 +148,13 @@ export default function ResponsiveNavbar({
           <div className="flex items-center justify-between">
             {/* Logo */}
             <Link href="/" className="flex items-center space-x-2">
-              <div className="w-7 h-7 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg flex items-center justify-center">
-                <div className="w-3 h-3 bg-white rounded-sm transform rotate-45"></div>
-              </div>
+              <img
+                src="/logo1.svg"
+                alt="Pokket"
+                width="28"
+                height="28"
+                className="transition-all duration-300 hover:scale-105"
+              />
               <span className="text-lg font-bold text-gray-900">Pokket</span>
             </Link>
 
@@ -197,7 +211,7 @@ export default function ResponsiveNavbar({
         <div className="bg-white/95 backdrop-blur-xl border-t border-gray-200/60 mobile-navbar-enter">
           <div className="safe-area-pb">
             <div className="px-4 py-3">
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-4 gap-1">
                 <Link
                   href="/"
                   className={getMobileActiveClass("/")}
@@ -247,6 +261,29 @@ export default function ResponsiveNavbar({
                   </svg>
                   <span className="text-xs font-medium leading-tight">
                     Send
+                  </span>
+                </Link>
+
+                <Link
+                  href="/withdraw"
+                  className={getMobileActiveClass("/withdraw")}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  <svg
+                    className="w-5 h-5 mb-1 flex-shrink-0"
+                    fill={pathname === "/withdraw" ? "currentColor" : "none"}
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M7 16l-4-4m0 0l4-4m-4 4h18"
+                    />
+                  </svg>
+                  <span className="text-xs font-medium leading-tight">
+                    Withdraw
                   </span>
                 </Link>
 

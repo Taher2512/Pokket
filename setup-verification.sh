@@ -1,0 +1,51 @@
+#!/bin/bash
+
+echo "🔍 Pokket Identity Verification - Setup Requirements"
+echo "=================================================="
+echo ""
+
+echo "📋 What you need to provide:"
+echo ""
+
+echo "1️⃣ CONTRACT OWNER'S PRIVATE KEY"
+echo "   Location: apps/backend/.env"
+echo "   Variable: VERIFICATION_PRIVATE_KEY"
+echo "   Purpose: Allows the backend to verify users manually"
+echo ""
+echo "   How to get it:"
+echo "   - This is the private key of the account that deployed the contract"
+echo "   - It should be the same key used in your PRIVATE_KEY when deploying"
+echo "   - Contract address: 0xbad8F4ffD864b4cB2E043C197c697C22f4B899Aa"
+echo ""
+
+echo "2️⃣ SELF PROTOCOL CONFIG ID (Already set)"
+echo "   Value: 0x766466f264a44af31cd388cd05801bcc5dfff4980ee97503579db8b3d0742a7e"
+echo "   Status: ✅ Already configured in your deployment script"
+echo ""
+
+echo "3️⃣ UPDATE BACKEND .env FILE"
+echo "   Current status of VERIFICATION_PRIVATE_KEY: $(grep VERIFICATION_PRIVATE_KEY apps/backend/.env || echo 'NOT SET')"
+echo ""
+
+echo "🔧 Required Actions:"
+echo ""
+echo "1. Replace 'ADD_CONTRACT_OWNER_PRIVATE_KEY_HERE' in apps/backend/.env"
+echo "   with your actual private key (the one used to deploy the contract)"
+echo ""
+echo "2. Restart your backend server after updating the .env file"
+echo ""
+echo "3. Test verification using:"
+echo "   node test-verification-setup.js"
+echo ""
+
+echo "⚠️  SECURITY NOTE:"
+echo "   - Never commit private keys to git"
+echo "   - Use environment variables in production"
+echo "   - This is testnet, but still keep keys secure"
+echo ""
+
+echo "🎯 After setup, your verification flow will:"
+echo "   ✅ Work with manual verification (for testing)"
+echo "   ✅ Show verification status on QR codes" 
+echo "   ✅ Allow users to see who is verified"
+echo "   ✅ Provide fallback when Self Protocol isn't available"
