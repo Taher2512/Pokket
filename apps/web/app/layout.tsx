@@ -1,14 +1,16 @@
 import type { Metadata } from "next";
-import localFont from "next/font/local";
+import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { AppProviders } from "../components/AppProviders";
 
-const geistSans = localFont({
-  src: "./fonts/GeistVF.woff",
+// Use Google Fonts instead of local fonts for better Vercel compatibility
+const inter = Inter({
+  subsets: ["latin"],
   variable: "--font-geist-sans",
 });
-const geistMono = localFont({
-  src: "./fonts/GeistMonoVF.woff",
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ["latin"],
   variable: "--font-geist-mono",
 });
 
@@ -25,7 +27,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable}`}>
+      <body className={`${inter.variable} ${jetbrainsMono.variable}`}>
         <AppProviders>{children}</AppProviders>
       </body>
     </html>
