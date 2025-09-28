@@ -738,22 +738,48 @@ export default function WithdrawModal({
                         : userBalance.ethAmount;
                     const symbol = token === "pyusd" ? "PYUSD" : "ETH";
 
+                    const isPyusd = token === "pyusd";
+                    const isSelected = selectedToken === token;
+
                     return (
                       <button
                         key={token}
                         onClick={() => setSelectedToken(token)}
                         disabled={balanceUSD === 0}
-                        className={`flex-1 p-3 rounded-xl border-2 transition-all disabled:opacity-50 ${
-                          selectedToken === token
-                            ? "border-orange-500 bg-orange-50"
-                            : "border-gray-200 hover:border-gray-300"
+                        className={`flex-1 p-4 rounded-xl border-2 transition-all disabled:opacity-50 relative ${
+                          isSelected
+                            ? isPyusd
+                              ? "border-orange-500 bg-gradient-to-r from-orange-50 to-yellow-50"
+                              : "border-orange-500 bg-orange-50"
+                            : isPyusd
+                              ? "border-orange-200 bg-gradient-to-r from-orange-25 to-yellow-25 hover:border-orange-300"
+                              : "border-gray-200 hover:border-gray-300"
                         }`}
                       >
-                        <div className="text-sm font-medium">{symbol}</div>
-                        <div className="text-xs text-gray-500">
-                          {token === "pyusd"
-                            ? `${formatBalance(actualAmount)} available`
-                            : `${formatBalance(actualAmount, true)} ${symbol} ($${formatBalance(balanceUSD)})`}
+                        {isPyusd && (
+                          <div className="absolute -top-1 -right-1">
+                            <span className="inline-flex items-center px-1.5 py-0.5 bg-gradient-to-r from-orange-500 to-yellow-500 text-white text-xs font-medium rounded-full">
+                              Stable
+                            </span>
+                          </div>
+                        )}
+
+                        <div className="flex flex-col items-center gap-2">
+                          <div
+                            className={`text-sm font-semibold ${isPyusd ? "text-orange-800" : "text-gray-800"}`}
+                          >
+                            {symbol}
+                          </div>
+                          <div className="text-xs text-gray-600 text-center">
+                            {token === "pyusd"
+                              ? `${formatBalance(actualAmount)} available`
+                              : `${formatBalance(actualAmount, true)} ${symbol} ($${formatBalance(balanceUSD)})`}
+                          </div>
+                          {isPyusd && (
+                            <div className="text-xs text-orange-600 font-medium">
+                              Default Currency
+                            </div>
+                          )}
                         </div>
                       </button>
                     );

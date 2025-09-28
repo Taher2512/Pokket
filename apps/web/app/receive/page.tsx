@@ -1,10 +1,10 @@
 "use client";
 
 import React from "react";
-import QRPaymentFlow from "../../components/QRPaymentFlow";
+import AddressQRCode from "../../components/AddressQRCode";
 import ResponsiveNavbar from "../../components/ResponsiveNavbar";
 
-export default function SendPage() {
+export default function ReceivePage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-orange-50/20">
       <ResponsiveNavbar />
@@ -16,10 +16,10 @@ export default function SendPage() {
           <div className="md:hidden">
             <div className="text-center mb-6">
               <h1 className="text-2xl font-bold text-gray-900 mb-2">
-                Send Payment
+                Receive Payment
               </h1>
               <p className="text-gray-600">
-                Scan QR code to send payment instantly
+                Share your QR code to receive payments
               </p>
             </div>
           </div>
@@ -27,14 +27,19 @@ export default function SendPage() {
           {/* Desktop Layout */}
           <div className="hidden md:block text-center mb-8">
             <h1 className="text-3xl font-bold text-gray-900 mb-4">
-              Send Payment
+              Receive Payment
             </h1>
             <p className="text-gray-600 text-lg mb-8">
-              Scan or upload a QR code to send payment to anyone
+              Share your QR code or wallet address to receive payments
             </p>
           </div>
 
-          <QRPaymentFlow />
+          {/* QR Code Component */}
+          <div className="flex justify-center">
+            <div className="w-full max-w-md md:max-w-lg">
+              <AddressQRCode />
+            </div>
+          </div>
         </div>
       </main>
     </div>

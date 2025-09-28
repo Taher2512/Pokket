@@ -7,6 +7,7 @@ import { useVerification } from "../contexts/VerificationContext";
 import { usePathname } from "next/navigation";
 import { VerificationButton } from "./VerificationButton";
 import { NavbarVerifiedBadge } from "./VerifiedBadge";
+import { Home, Receipt, Settings, User } from "lucide-react";
 
 interface ResponsiveNavbarProps {
   currentPage?: string;
@@ -87,6 +88,9 @@ export default function ResponsiveNavbar({
                   </Link>
                   <Link href="/swap" className={getActiveClass("/swap")}>
                     Swap
+                  </Link>
+                  <Link href="/receive" className={getActiveClass("/receive")}>
+                    Receive
                   </Link>
                 </div>
 
@@ -217,96 +221,60 @@ export default function ResponsiveNavbar({
                   className={getMobileActiveClass("/")}
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
-                  <svg
+                  <Home
                     className="w-5 h-5 mb-1 flex-shrink-0"
                     fill={pathname === "/" ? "currentColor" : "none"}
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z"
-                    />
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M8 5a2 2 0 012-2h4a2 2 0 012 2v6h-8V5z"
-                    />
-                  </svg>
+                    strokeWidth={pathname === "/" ? 0 : 2}
+                  />
                   <span className="text-xs font-medium leading-tight">
-                    Dashboard
+                    Home
                   </span>
                 </Link>
 
                 <Link
-                  href="/send"
-                  className={getMobileActiveClass("/send")}
+                  href="/transactions"
+                  className={getMobileActiveClass("/transactions")}
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
-                  <svg
+                  <Receipt
                     className="w-5 h-5 mb-1 flex-shrink-0"
-                    fill={pathname === "/send" ? "currentColor" : "none"}
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
-                    />
-                  </svg>
+                    fill={
+                      pathname === "/transactions" ? "currentColor" : "none"
+                    }
+                    strokeWidth={pathname === "/transactions" ? 0 : 2}
+                  />
                   <span className="text-xs font-medium leading-tight">
-                    Send
+                    Transactions
                   </span>
                 </Link>
 
                 <Link
-                  href="/withdraw"
-                  className={getMobileActiveClass("/withdraw")}
+                  href="/settings"
+                  className={getMobileActiveClass("/settings")}
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
-                  <svg
+                  <Settings
                     className="w-5 h-5 mb-1 flex-shrink-0"
-                    fill={pathname === "/withdraw" ? "currentColor" : "none"}
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M7 16l-4-4m0 0l4-4m-4 4h18"
-                    />
-                  </svg>
+                    fill={pathname === "/settings" ? "currentColor" : "none"}
+                    strokeWidth={pathname === "/settings" ? 0 : 2}
+                  />
                   <span className="text-xs font-medium leading-tight">
-                    Withdraw
+                    Settings
                   </span>
                 </Link>
 
                 <Link
-                  href="/swap"
-                  className={getMobileActiveClass("/swap")}
+                  href="/profile"
+                  className={getMobileActiveClass("/profile")}
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
-                  <svg
+                  <User
                     className="w-5 h-5 mb-1 flex-shrink-0"
-                    fill={pathname === "/swap" ? "currentColor" : "none"}
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
-                    />
-                  </svg>
+                    fill={pathname === "/profile" ? "currentColor" : "none"}
+                    strokeWidth={pathname === "/profile" ? 0 : 2}
+                  />
                   <span className="text-xs font-medium leading-tight">
-                    Swap
+                    Profile
                   </span>
                 </Link>
               </div>

@@ -74,30 +74,42 @@ export default function WithdrawPage() {
 
           {/* Token Balances */}
           <div className="space-y-3 mb-8">
-            {balance.pyusd > 0 && (
-              <div className="flex items-center justify-between p-4 bg-white border border-gray-200 rounded-xl">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                    <span className="text-blue-600 font-bold text-sm">PY</span>
-                  </div>
-                  <div>
-                    <p className="font-medium text-gray-900">PYUSD</p>
-                    <p className="text-sm text-gray-500">PayPal USD</p>
-                  </div>
+            {/* PYUSD - Always first and highlighted */}
+            <div className="relative flex items-center justify-between p-4 bg-gradient-to-r from-orange-50 via-orange-100 to-yellow-50 border-2 border-orange-200 rounded-xl shadow-sm">
+              {/* Default Stable Currency Badge */}
+              <div className="absolute -top-2 -right-2">
+                <span className="inline-flex items-center px-2 py-1 bg-gradient-to-r from-orange-500 to-yellow-500 text-white text-xs font-medium rounded-full shadow-sm">
+                  Default Stable Currency
+                </span>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center shadow-md">
+                  <span className="text-white font-bold text-sm">PY</span>
                 </div>
-                <div className="text-right">
-                  <p className="font-semibold text-gray-900">
-                    {balance.pyusd.toFixed(2)}
-                  </p>
-                  <p className="text-sm text-gray-500">
-                    ${balance.pyusd.toFixed(2)}
-                  </p>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <p className="font-semibold text-gray-900">PYUSD</p>
+                    <span className="inline-flex items-center px-2 py-0.5 bg-green-100 text-green-800 text-xs font-medium rounded-full">
+                      Stable
+                    </span>
+                  </div>
+                  <p className="text-sm text-gray-600">PayPal USD</p>
                 </div>
               </div>
-            )}
+              <div className="text-right">
+                <p className="font-bold text-gray-900 text-lg">
+                  {balance.pyusd.toFixed(2)}
+                </p>
+                <p className="text-sm text-gray-600">
+                  ${balance.pyusd.toFixed(2)}
+                </p>
+              </div>
+            </div>
 
+            {/* ETH - Secondary position */}
             {balance.eth > 0 && (
-              <div className="flex items-center justify-between p-4 bg-white border border-gray-200 rounded-xl">
+              <div className="flex items-center justify-between p-4 bg-white border border-gray-200 rounded-xl hover:border-gray-300 transition-colors">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
                     <span className="text-gray-600 font-bold text-sm">Ξ</span>
