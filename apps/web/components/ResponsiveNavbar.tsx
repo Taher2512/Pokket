@@ -3,10 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useAuth } from "../contexts/AuthContext";
-import { useVerification } from "../contexts/VerificationContext";
 import { usePathname } from "next/navigation";
-import { VerificationButton } from "./VerificationButton";
-import { NavbarVerifiedBadge } from "./VerifiedBadge";
 
 interface ResponsiveNavbarProps {
   currentPage?: string;
@@ -16,7 +13,6 @@ export default function ResponsiveNavbar({
   currentPage,
 }: ResponsiveNavbarProps) {
   const { user, logout } = useAuth();
-  const { verificationStatus } = useVerification();
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -92,11 +88,6 @@ export default function ResponsiveNavbar({
 
                 {/* User Profile - Right (Fixed Position) */}
                 <div className="flex items-center space-x-4 flex-shrink-0">
-                  {/* Verification Button */}
-                  {user?.publicAddress && (
-                    <VerificationButton userAddress={user.publicAddress} />
-                  )}
-
                   <div className="flex items-center space-x-3 px-3 py-2 bg-gray-50/50 rounded-xl">
                     {user?.avatar && (
                       <img
@@ -109,10 +100,6 @@ export default function ResponsiveNavbar({
                       <span className="text-sm font-medium text-gray-700 whitespace-nowrap">
                         {user?.name?.split(" ")[0] || "User"}
                       </span>
-                      {/* Verified Badge */}
-                      <NavbarVerifiedBadge
-                        verificationStatus={verificationStatus}
-                      />
                     </div>
                   </div>
 
@@ -161,12 +148,6 @@ export default function ResponsiveNavbar({
             {/* User Profile */}
             <div className="flex items-center space-x-3">
               {/* Mobile Verification Button */}
-              {user?.publicAddress && (
-                <div className="scale-90">
-                  <VerificationButton userAddress={user.publicAddress} />
-                </div>
-              )}
-
               <div className="flex items-center space-x-2">
                 {user?.avatar && (
                   <img
@@ -178,8 +159,6 @@ export default function ResponsiveNavbar({
                 <span className="text-sm font-medium text-gray-700">
                   {user?.name?.split(" ")[0] || "User"}
                 </span>
-                {/* Mobile Verified Badge */}
-                <NavbarVerifiedBadge verificationStatus={verificationStatus} />
               </div>
 
               <button

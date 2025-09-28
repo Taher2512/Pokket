@@ -2,7 +2,7 @@
 pragma solidity 0.8.28;
 
 import {Script, console} from "forge-std/Script.sol";
-import {SimplePokketIdentityVerification} from "../src/SimplePokketIdentityVerification.sol";
+import {PokketIdentityVerificationSimple} from "../src/PokketIdentityVerificationSimple.sol";
 
 /**
  * @title DeploySimplePokketIdentityVerification
@@ -37,7 +37,7 @@ contract DeploySimplePokketIdentityVerification is Script {
         vm.startBroadcast(deployerPrivateKey);
 
         // Deploy the contract
-        SimplePokketIdentityVerification verificationContract = new SimplePokketIdentityVerification(CONFIG_ID);
+        PokketIdentityVerificationSimple verificationContract = new PokketIdentityVerificationSimple();
 
         // Stop broadcasting
         vm.stopBroadcast();

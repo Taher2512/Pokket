@@ -3,54 +3,18 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "../contexts/AuthContext";
-import { useVerification } from "../contexts/VerificationContext";
-import { apiService } from "../lib/api";
-import { WalletInfo } from "../types";
 import { TokenPortfolio } from "./TokenPortfolio";
 import AddressQRCode from "./AddressQRCode";
-import { VerificationButton } from "./VerificationButton";
-import { NavbarVerifiedBadge } from "./VerifiedBadge";
 import ResponsiveNavbar from "./ResponsiveNavbar";
 
 export function Dashboard() {
-  const { user, logout } = useAuth();
-  const { verificationStatus } = useVerification();
-  const [wallet, setWallet] = useState<WalletInfo | null>(null);
+  const { user } = useAuth();
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string>("");
 
   useEffect(() => {
-    loadWalletInfo();
+    // Dashboard loads immediately without additional API calls
+    setLoading(false);
   }, []);
-
-  const loadWalletInfo = async () => {
-    try {
-      setLoading(true);
-      const walletData = await apiService.getUserWallet();
-      setWallet(walletData);
-    } catch (error) {
-      console.error("Error loading wallet:", error);
-      setError(
-        error instanceof Error ? error.message : "Failed to load wallet"
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const copyToClipboard = async (text: string, label: string) => {
-    try {
-      await navigator.clipboard.writeText(text);
-      // Modern toast would be better here, but using alert for now
-      alert(`${label} copied to clipboard!`);
-    } catch (error) {
-      console.error("Failed to copy:", error);
-    }
-  };
-
-  const handleLogout = () => {
-    logout();
-  };
 
   if (loading) {
     return (
@@ -68,36 +32,7 @@ export function Dashboard() {
     );
   }
 
-  if (error) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-orange-50/20 flex items-center justify-center px-4">
-        <div className="card max-w-md w-full text-center p-8">
-          <div className="w-12 h-12 bg-red-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
-            <svg
-              className="w-6 h-6 text-red-600"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
-          </div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">
-            Connection Error
-          </h3>
-          <p className="text-gray-600 mb-6 text-sm leading-relaxed">{error}</p>
-          <button onClick={loadWalletInfo} className="btn-primary w-full">
-            Retry Connection
-          </button>
-        </div>
-      </div>
-    );
-  }
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-orange-50/20">
@@ -177,18 +112,10 @@ export function Dashboard() {
                   </svg>
                 </div>
                 <h3 className="text-2xl font-bold text-gray-900 mb-3">
-<<<<<<< HEAD
                   Send Money
                 </h3>
                 <p className="text-gray-600 mb-6 max-w-md mx-auto">
                   Send cryptocurrency to contacts or scan QR codes instantly
-=======
-                  Send via QR Code
-                </h3>
-                <p className="text-gray-600 mb-6 max-w-md mx-auto">
-                  Scan QR codes or upload images to send payments instantly to
-                  any wallet address
->>>>>>> e9f2cbf2b6272fa084ee41710d5737392ecb95b7
                 </p>
                 <Link
                   href="/send"
@@ -207,28 +134,21 @@ export function Dashboard() {
                       d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
                     />
                   </svg>
-<<<<<<< HEAD
                   <span>Send Money</span>
-=======
-                  <span>Start Sending</span>
->>>>>>> e9f2cbf2b6272fa084ee41710d5737392ecb95b7
                 </Link>
               </div>
             </div>
           </div>
 
           {/* Light Footer */}
+
           <div className="max-w-4xl mx-auto mt-24">
             <div className="bg-white/80 backdrop-blur-xl border border-gray-200/60 rounded-3xl p-8 shadow-xl shadow-black/5">
               <div className="text-center">
                 <div className="flex items-center justify-center space-x-3 mb-4">
-                  <img
-                    src="/logo1.svg"
-                    alt="Pokket"
-                    width="40"
-                    height="40"
-                    className="transition-all duration-300 hover:scale-105"
-                  />
+                  <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center">
+                    <div className="w-5 h-5 bg-white rounded-md transform rotate-45"></div>
+                  </div>
                   <span className="text-2xl font-bold text-gray-900">
                     Pokket
                   </span>
@@ -266,5 +186,6 @@ export function Dashboard() {
         </div>
       </main>
     </div>
+     
   );
 }

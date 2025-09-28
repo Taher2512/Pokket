@@ -36,8 +36,36 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const checkAuthStatus = async () => {
     try {
       if (apiService.isAuthenticated()) {
-        const userProfile = await apiService.getUserProfile();
-        setUser(userProfile);
+        // Check if this is a SELF-verified user session
+        const userSession = localStorage.getItem('pokket_user_session');
+        const authToken = localStorage.getItem('authToken');
+        
+        if (userSession && authToken?.startsWith('verified-identity-session-')) {
+          // This is a SELF-verified user, create user object from stored session
+          console.log('🔍 Found SELF-verified user session:', { userSession, authToken });
+          const sessionData = JSON.parse(userSession);
+          console.log('📋 Session data:', sessionData);
+          const mockUser: User = {
+            id: sessionData.nullifierId?.slice(0, 10) || 'self-user',
+            email: sessionData.name 
+              ? `${sessionData.name.toLowerCase().replace(/\s+/g, '.')}@pokket-verified.id`
+              : 'user@pokket-verified.id',
+            name: sessionData.name || 'Verified User',
+            avatar: undefined,
+            publicAddress: sessionData.ethAddress,
+            publicAddressSolana: sessionData.solAddress,
+            createdAt: new Date(sessionData.verifiedAt * 1000).toISOString(),
+            lastLoginAt: new Date().toISOString(),
+            isVerified: true,
+          };
+          console.log('✅ SELF user created:', mockUser);
+          setUser(mockUser);
+        } else {
+          // Regular Google OAuth user, get profile from backend
+          console.log('🔄 Fetching regular user profile from backend...');
+          const userProfile = await apiService.getUserProfile();
+          setUser(userProfile);
+        }
       }
     } catch (error) {
       console.error("Error checking auth status:", error);

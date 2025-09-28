@@ -187,17 +187,16 @@ export class AuthService {
   /**
    * Generate JWT token for user session
    */
-  generateJWT(userId: string, email: string): string {
+  generateJWT(userId: string, email: string, additionalData?: Record<string, any>): string {
     try {
-      return jwt.sign(
-        {
-          userId,
-          email,
-          iat: Math.floor(Date.now() / 1000),
-        },
-        JWT_SECRET,
-        { expiresIn: "7d" }
-      );
+      const payload = {
+        userId,
+        email,
+        iat: Math.floor(Date.now() / 1000),
+        ...additionalData
+      };
+      
+      return jwt.sign(payload, JWT_SECRET, { expiresIn: "7d" });
     } catch (error) {
       console.error("Error generating JWT:", error);
       throw new Error("Failed to generate authentication token");
@@ -207,13 +206,10 @@ export class AuthService {
   /**
    * Verify JWT token
    */
-  verifyJWT(token: string): { userId: string; email: string } {
+  verifyJWT(token: string): { userId: string; email: string; [key: string]: any } {
     try {
       const decoded = jwt.verify(token, JWT_SECRET) as any;
-      return {
-        userId: decoded.userId,
-        email: decoded.email,
-      };
+      return decoded;
     } catch (error) {
       console.error("Error verifying JWT:", error);
       throw new Error("Invalid authentication token");

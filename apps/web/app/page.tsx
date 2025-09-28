@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import { Dashboard } from "../components/Dashboard";
+import { IdentityVerificationButton } from "../components/IdentityVerificationButton";
 import { apiService } from "../lib/api";
 
 const LandingPage = () => {
@@ -161,19 +162,19 @@ const LandingPage = () => {
   const steps = [
     {
       step: "01",
-      title: "Instant Google Sign-In",
+      title: "Choose Your Path",
       description:
-        "Use your Google account to get started in seconds with enterprise-grade security",
+        "Start with Google OAuth or go directly to identity verification with SELF protocol",
       icon: <Users className="w-6 h-6" />,
-      details: ["No seed phrases", "Instant access", "Secure authentication"],
+      details: ["Google sign-in", "Identity verification", "No seed phrases"],
       color: "from-blue-500 to-cyan-500",
       bgColor: "from-blue-50 to-cyan-50",
     },
     {
       step: "02",
-      title: "KYC Verification with SELF",
+      title: "Identity with SELF Protocol",
       description:
-        "Complete identity verification using SELF protocol for trusted transactions",
+        "Complete secure identity verification using SELF protocol for trusted Web3 transactions",
       icon: <Shield className="w-6 h-6" />,
       details: ["SELF protocol", "Instant verification", "Privacy-first"],
       color: "from-emerald-500 to-teal-500",
@@ -282,14 +283,22 @@ const LandingPage = () => {
                   <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-orange-400 to-orange-600 group-hover:w-full transition-all duration-300" />
                 </a>
               ))}
-              <button
-                onClick={handleGoogleSignIn}
-                className="relative bg-gradient-to-r from-orange-400 via-orange-500 to-orange-600 text-white px-8 py-3 rounded-2xl hover:from-orange-500 hover:to-orange-700 transition-all duration-300 font-semibold shadow-lg hover:shadow-2xl transform hover:-translate-y-1 hover:scale-105 overflow-hidden group flex items-center space-x-2"
-              >
-                <GoogleIcon className="w-4 h-4" />
-                <span className="relative z-10">Get Started</span>
-                <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-              </button>
+              <div className="flex items-center space-x-3">
+                <button
+                  onClick={handleGoogleSignIn}
+                  className="relative bg-gradient-to-r from-orange-400 via-orange-500 to-orange-600 text-white px-6 py-3 rounded-2xl hover:from-orange-500 hover:to-orange-700 transition-all duration-300 font-semibold shadow-lg hover:shadow-2xl transform hover:-translate-y-1 hover:scale-105 overflow-hidden group flex items-center space-x-2"
+                >
+                  <GoogleIcon className="w-4 h-4" />
+                  <span className="relative z-10">Google</span>
+                  <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                </button>
+                
+                <IdentityVerificationButton 
+                  size="md"
+                  variant="secondary"
+                  className="border-2 border-orange-200 hover:border-orange-300 bg-white text-orange-600 hover:bg-orange-50"
+                />
+              </div>
             </div>
 
             <button
@@ -316,13 +325,21 @@ const LandingPage = () => {
                     {item}
                   </a>
                 ))}
-                <button
-                  onClick={handleGoogleSignIn}
-                  className="w-full bg-gradient-to-r from-orange-400 to-orange-600 text-white px-8 py-4 rounded-2xl hover:from-orange-500 hover:to-orange-700 transition-all duration-300 font-semibold shadow-lg flex items-center justify-center space-x-2"
-                >
-                  <GoogleIcon className="w-5 h-5" />
-                  <span>Get Started</span>
-                </button>
+                <div className="space-y-3">
+                  <button
+                    onClick={handleGoogleSignIn}
+                    className="w-full bg-gradient-to-r from-orange-400 to-orange-600 text-white px-8 py-4 rounded-2xl hover:from-orange-500 hover:to-orange-700 transition-all duration-300 font-semibold shadow-lg flex items-center justify-center space-x-2"
+                  >
+                    <GoogleIcon className="w-5 h-5" />
+                    <span>Sign with Google</span>
+                  </button>
+                  
+                  <IdentityVerificationButton 
+                    size="md"
+                    variant="secondary"
+                    className="w-full border-2 border-orange-200 hover:border-orange-300 bg-white text-orange-600 hover:bg-orange-50"
+                  />
+                </div>
               </div>
             </div>
           </div>
@@ -341,7 +358,7 @@ const LandingPage = () => {
                 <div className="w-2 h-2 bg-orange-600 rounded-full animate-pulse delay-300" />
               </div>
               <span>
-                Now with SELF KYC verification • 1inch DEX • PYUSD stable
+                Now with SELF protocol identity • 1inch DEX • PYUSD stable
                 conversion
               </span>
               <Star className="w-4 h-4 text-orange-500" />
@@ -358,11 +375,13 @@ const LandingPage = () => {
             </h1>
 
             <p className="text-xl lg:text-2xl text-slate-600 mb-16 max-w-4xl mx-auto leading-relaxed font-light animate-fade-in-up delay-300">
-              The first crypto wallet that feels like your favorite app. Swap
-              via <span className="font-semibold text-orange-600">1inch</span>,
+              The first crypto wallet that feels like your favorite app. 
+              Start with <span className="font-semibold text-orange-600">Google</span> or 
+              <span className="font-semibold text-blue-600">SELF protocol</span> directly. 
+              Swap via <span className="font-semibold text-orange-600">1inch</span>,
               convert to stable{" "}
               <span className="font-semibold text-orange-600">PYUSD</span>, and
-              cash out to PayPal - all without the complexity.
+              cash out to PayPal.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-6 justify-center items-center animate-fade-in-up delay-500">
@@ -378,6 +397,25 @@ const LandingPage = () => {
                 <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
               </button>
+              
+              {/* OR separator */}
+              <div className="flex items-center space-x-4 animate-fade-in-up delay-600">
+                <div className="h-px bg-slate-300 flex-1"></div>
+                <span className="text-slate-500 font-medium bg-white/80 backdrop-blur-sm px-4 py-2 rounded-full border border-slate-200">
+                  or
+                </span>
+                <div className="h-px bg-slate-300 flex-1"></div>
+              </div>
+              
+              {/* Identity Verification Button - Alternative authentication method */}
+              <div className="animate-fade-in-up delay-700">
+                <IdentityVerificationButton 
+                  size="lg"
+                  variant="secondary"
+                  className="border-2 border-blue-200 hover:border-blue-300 bg-white/90 backdrop-blur-sm text-blue-600 hover:bg-blue-50"
+                />
+              </div>
+            
 
               <button className="group text-slate-700 hover:text-orange-600 font-semibold text-xl flex items-center space-x-3 px-8 py-5 rounded-2xl hover:bg-gradient-to-r hover:from-orange-50 hover:to-amber-50 transition-all duration-300 border-2 border-transparent hover:border-orange-200">
                 <span>Watch Demo</span>
@@ -803,6 +841,15 @@ const LandingPage = () => {
               <ArrowRight className="w-6 h-6 group-hover:translate-x-2 transition-transform duration-300 relative z-10" />
               <div className="absolute inset-0 bg-gradient-to-r from-orange-50 to-white opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
             </button>
+            
+            {/* Identity Verification Button - Alternative authentication method */}
+            <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-2">
+              <IdentityVerificationButton 
+                size="lg"
+                variant="secondary"
+                className="bg-white/90 backdrop-blur-sm text-orange-600 hover:bg-white border-2 border-white/30 hover:border-white/50"
+              />
+            </div>
 
             <div className="text-white/80 text-lg font-medium">
               Free to start • No credit card required

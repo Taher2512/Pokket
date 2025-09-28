@@ -22,6 +22,19 @@ export interface CreateTiplinkData {
   expiresAt?: Date;
 }
 
+export interface SelfVerificationData {
+  nullifierId: string;
+  ethAddress: string;
+  solAddress: string;
+  name: string;
+  nationality: string;
+  age: number;
+  issuingState: string;
+  transactionHash: string;
+  verifiedAt: Date;
+  isVerified: boolean;
+}
+
 export class DatabaseService {
   /**
    * Find user by email
@@ -247,6 +260,107 @@ export class DatabaseService {
     } catch (error) {
       console.error("Error getting recent contacts from database:", error);
       return []; // Return empty array instead of throwing
+    }
+  }
+
+  /**
+   * Store SELF verification data
+   */
+  async storeSelfVerification(data: SelfVerificationData) {
+    try {
+      console.log('💾 Storing SELF verification data in database:', data);
+      
+      // Create a new user entry for SELF-verified users
+      // Store the wallet addresses so they can be used for real transactions
+      const user = await prisma.user.create({
+        data: {
+          email: `${data.nullifierId.slice(0, 16)}@pokket-verified.id`,
+          googleId: data.nullifierId, // Use nullifier as unique ID
+          name: data.name,
+          avatar: null,
+          encryptedPrivateKey: "", // Will be set when needed
+          publicAddress: data.ethAddress,
+          encryptedPrivateKeySolana: "", // Will be set when needed  
+          publicAddressSolana: data.solAddress,
+          lastLoginAt: data.verifiedAt,
+        },
+      });
+      
+      console.log('✅ SELF user created in database:', user.id);
+      
+      return {
+        success: true,
+        userId: user.id,
+        data: data
+      };
+    } catch (error) {
+      console.error("Error storing SELF verification:", error);
+      // If user already exists, update it
+      try {
+        const existingUser = await prisma.user.findUnique({
+          where: { googleId: data.nullifierId }
+        });
+        
+        if (existingUser) {
+          const updatedUser = await prisma.user.update({
+            where: { id: existingUser.id },
+            data: {
+              name: data.name,
+              publicAddress: data.ethAddress,
+              publicAddressSolana: data.solAddress,
+              lastLoginAt: data.verifiedAt,
+            },
+          });
+          
+          console.log('✅ SELF user updated in database:', updatedUser.id);
+          return {
+            success: true,
+            userId: updatedUser.id,
+            data: data
+          };
+        }
+      } catch (updateError) {
+        console.error("Error updating SELF verification:", updateError);
+      }
+      
+      throw new Error("Failed to store SELF verification");
+    }
+  }
+
+  /**
+   * Get SELF verification by nullifier ID
+   */
+  async getSelfVerificationByNullifier(nullifierId: string): Promise<SelfVerificationData | null> {
+    try {
+      console.log('🔍 Looking up SELF verification for nullifier:', nullifierId);
+      
+      // Find user by nullifier ID (stored as googleId)
+      const user = await prisma.user.findUnique({
+        where: { googleId: nullifierId }
+      });
+      
+      if (!user) {
+        console.log('⚠️ No SELF user found for nullifier:', nullifierId);
+        return null;
+      }
+      
+      console.log('✅ Found SELF user:', { id: user.id, name: user.name, ethAddress: user.publicAddress });
+      
+      return {
+        nullifierId: nullifierId,
+        ethAddress: user.publicAddress,
+        solAddress: user.publicAddressSolana || "",
+        name: user.name || "SELF Verified User",
+        nationality: "UNKNOWN",
+        age: 0,
+        issuingState: "UNKNOWN", 
+        transactionHash: "",
+        verifiedAt: user.lastLoginAt || new Date(),
+        isVerified: true
+      };
+    } catch (error) {
+      console.error("Error getting SELF verification:", error);
+      throw new Error("Failed to get SELF verification");
     }
   }
 

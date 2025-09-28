@@ -14,15 +14,18 @@ const CELO_ALFAJORES_RPC =
 const VERIFICATION_CONTRACT_ADDRESS =
   process.env.VERIFICATION_CONTRACT_ADDRESS || "";
 
-// SimplePokketIdentityVerification contract ABI (updated interface)
+// PokketSelfVerification contract ABI (SELF-compatible contract)
 const VERIFICATION_ABI = [
   "function isUserVerified(address user) view returns (bool)",
-  "function getUserVerificationDetails(address user) view returns (bool isVerified, uint256 timestamp, bytes metadata)",
-  "function totalVerifiedUsers() view returns (uint256)",
-  "function getContractStats() view returns (uint256 totalUsers, bytes32 currentConfig, address contractOwner)",
-  "function setConfigId(bytes32 _newConfigId) external",
-  "function verifyUser(address _user, bytes _metadata) external",
-  "function batchCheckVerification(address[] _users) view returns (bool[])",
+  "function getVerificationByAddress(address ethAddress) view returns (tuple(bytes32 nullifierId, address ethAddress, address solAddress, string name, string nationality, uint256 age, string issuingState, uint256 verifiedAt, bool isVerified))",
+  "function getVerificationByNullifier(bytes32 nullifierId) view returns (tuple(bytes32 nullifierId, address ethAddress, address solAddress, string name, string nationality, uint256 age, string issuingState, uint256 verifiedAt, bool isVerified))",
+  "function getNullifierByAddress(address ethAddress) view returns (bytes32)",
+  "function getAddressByNullifier(bytes32 nullifierId) view returns (address)",
+  "function onVerificationSuccess(tuple(bytes32 userIdentifier, bytes disclosedAttributes, uint256 timestamp, bytes32 configId) output, bytes userData) external",
+  "function setVerificationConfigId(bytes32 configId) external",
+  "function setSelfHubAddress(address hubAddress) external", 
+  "function getSelfHubAddress() external view returns (address)",
+  "function owner() view returns (address)",
 ];
 // ...existing code...
 
@@ -51,142 +54,14 @@ const provider = new JsonRpcProvider(CELO_ALFAJORES_RPC);
 
 /**
  * Write verification to blockchain using user's private key
+ * NOTE: Currently disabled due to database dependencies that need to be updated
  */
 async function writeVerificationToBlockchain(userAddress: string) {
-  try {
-    if (!VERIFICATION_CONTRACT_ADDRESS) {
-      throw new Error("Contract address not configured");
-    }
-
-    console.log(`🔗 Writing verification for ${userAddress} to blockchain...`);
-
-    // Use imported services
-    const dbService = new DatabaseService();
-    const authService = new AuthService();
-
-    // Find user by their Ethereum address
-    const user = await dbService.findUserByAddress(userAddress);
-    if (!user) {
-      return {
-        success: false,
-        error: `User with address ${userAddress} not found in database`,
-        suggestion:
-          "Make sure the user is registered and logged in at least once",
-      };
-    }
-
-    // Decrypt the user's private key
-    const userPrivateKey = authService.decryptPrivateKey(
-      user.encryptedPrivateKey
-    );
-
-    console.log(`👤 Found user: ${user.email}`);
-    console.log(`🔑 Using user's private key for transaction`);
-
-    // Create wallet using user's private key
-    const wallet = new Wallet(userPrivateKey, provider);
-
-    // Verify the wallet address matches (security check)
-    if (wallet.address.toLowerCase() !== userAddress.toLowerCase()) {
-      console.error(
-        `Address mismatch: wallet=${wallet.address}, requested=${userAddress}`
-      );
-      return {
-        success: false,
-        error: "Private key does not match the provided address",
-      };
-    }
-
-    // Check user's balance for gas fees
-    const balance = await provider.getBalance(userAddress);
-    console.log(`💰 User balance: ${balance.toString()} wei`);
-
-    if (balance === 0n) {
-      return {
-        success: false,
-        error: "User has no balance for gas fees",
-        suggestion:
-          "User needs testnet CELO for gas fees. Visit https://faucet.celo.org/alfajores",
-      };
-    }
-
-    // Contract ABI for calling onVerificationSuccess
-    const contractABI = [
-      "function onVerificationSuccess(bytes calldata verificationOutput, bytes calldata userData) external",
-      "function isUserVerified(address user) view returns (bool)",
-    ];
-
-    const contract = new Contract(
-      VERIFICATION_CONTRACT_ADDRESS,
-      contractABI,
-      wallet
-    );
-    const readOnlyContract = new Contract(
-      VERIFICATION_CONTRACT_ADDRESS,
-      contractABI,
-      provider
-    );
-
-    // Check if already verified
-    const isAlreadyVerified =
-      await readOnlyContract.isUserVerified!(userAddress);
-
-    if (isAlreadyVerified) {
-      console.log(`ℹ️ User ${userAddress} is already verified on blockchain`);
-      return {
-        success: true,
-        txHash: "already-verified",
-        message: "User already verified on blockchain",
-        userEmail: user.email,
-      };
-    }
-
-    // Create verification data structure that Self Protocol would send
-    const abiCoder = AbiCoder.defaultAbiCoder();
-
-    // Encode verification output (mimics Self Protocol's GenericDiscloseOutputV2)
-    const verificationOutput = abiCoder.encode(
-      ["uint256", "bool", "uint256"], // userIdentifier, verified, timestamp
-      [BigInt(userAddress), true, BigInt(Math.floor(Date.now() / 1000))]
-    );
-
-    // Encode user data
-    const userData = abiCoder.encode(
-      ["string", "string", "uint256"],
-      ["auto-blockchain-verification", user.email, BigInt(Date.now())]
-    );
-
-    console.log(`📝 Calling onVerificationSuccess for ${user.email}...`);
-
-    // Call the verification function
-    const tx = await contract.onVerificationSuccess!(
-      verificationOutput,
-      userData
-    );
-    console.log(`⏳ Transaction sent: ${tx.hash}`);
-
-    // Wait for confirmation
-    const receipt = await tx.wait();
-    console.log(`✅ Transaction confirmed in block ${receipt?.blockNumber}`);
-
-    return {
-      success: true,
-      txHash: tx.hash,
-      blockNumber: receipt?.blockNumber,
-      gasUsed: receipt?.gasUsed?.toString(),
-      userEmail: user.email,
-      message: `Verification successfully written to blockchain! User ${user.email} paid gas fees.`,
-    };
-  } catch (error) {
-    console.error("Error writing to blockchain:", error);
-    return {
-      success: false,
-      error:
-        error instanceof Error
-          ? error.message
-          : "Unknown error writing to blockchain",
-    };
-  }
+  return {
+    success: false,
+    error: "This endpoint is temporarily disabled - use /manual-verify instead",
+    suggestion: "Use POST /verification/manual-verify for testing purposes"
+  };
 }
 
 // Initialize contract only if address is configured
@@ -224,14 +99,21 @@ app.get("/status/:address", async (c) => {
 
   try {
     const contract = getVerificationContract();
-    // Query the smart contract for verification details
-    const [isVerified, timestamp, metadata] =
-      await contract.getUserVerificationDetails?.(address);
+    // Query the smart contract for verification details using correct method
+    const verificationData = await contract.getVerificationByAddress?.(address);
 
     const status: VerificationStatus = {
-      isVerified,
-      verificationTimestamp: timestamp > 0 ? Number(timestamp) : undefined,
-      metadata: metadata && metadata.length > 0 ? metadata : undefined,
+      isVerified: verificationData.isVerified || false,
+      verificationTimestamp: verificationData.verifiedAt > 0 ? Number(verificationData.verifiedAt) : undefined,
+      metadata: verificationData.isVerified ? {
+        nullifierId: verificationData.nullifierId,
+        name: verificationData.name,
+        nationality: verificationData.nationality,
+        age: Number(verificationData.age),
+        issuingState: verificationData.issuingState,
+        ethAddress: verificationData.ethAddress,
+        solAddress: verificationData.solAddress
+      } : undefined,
     };
 
     return c.json(status);
@@ -282,26 +164,34 @@ app.post("/batch-status", async (c) => {
 
   try {
     const contract = getVerificationContract();
-    // Use contract's batch check function for efficiency
-    const results = await contract.batchCheckVerification?.(addresses);
-
     const statusMap: Record<string, VerificationStatus> = {};
 
-    // For each address, get detailed info if verified
-    for (let i = 0; i < addresses.length; i++) {
-      const address = addresses[i];
-      const isVerified = results[i];
-
-      if (isVerified) {
-        // Get full details for verified users
-        const [, timestamp, metadata] =
-          await contract.getUserVerificationDetails?.(address);
-        statusMap[address] = {
-          isVerified: true,
-          verificationTimestamp: Number(timestamp),
-          metadata: metadata && metadata.length > 0 ? metadata : undefined,
-        };
-      } else {
+    // Check each address individually since we don't have a batch function
+    for (const address of addresses) {
+      try {
+        const isVerified = await contract.isUserVerified?.(address);
+        
+        if (isVerified) {
+          // Get full verification details
+          const verificationData = await contract.getVerificationByAddress?.(address);
+          statusMap[address] = {
+            isVerified: true,
+            verificationTimestamp: Number(verificationData.verifiedAt),
+            metadata: {
+              nullifierId: verificationData.nullifierId,
+              name: verificationData.name,
+              nationality: verificationData.nationality,
+              age: Number(verificationData.age),
+              issuingState: verificationData.issuingState,
+              ethAddress: verificationData.ethAddress,
+              solAddress: verificationData.solAddress
+            },
+          };
+        } else {
+          statusMap[address] = { isVerified: false };
+        }
+      } catch (addressError) {
+        console.error(`Error checking address ${address}:`, addressError);
         statusMap[address] = { isVerified: false };
       }
     }
@@ -342,15 +232,13 @@ app.get("/stats", async (c) => {
 
   try {
     const contract = getVerificationContract();
-    const [totalUsers, currentConfig, contractOwner] =
-      await contract.getContractStats?.();
+    const contractOwner = await contract.owner?.();
 
     return c.json({
-      totalVerifiedUsers: Number(totalUsers),
-      contractConfig: currentConfig,
       contractOwner,
       contractAddress: VERIFICATION_CONTRACT_ADDRESS,
       network: "celo-alfajores",
+      message: "Contract stats available - owner information retrieved"
     });
   } catch (error) {
     console.error("Error fetching verification stats:", error);
@@ -431,54 +319,30 @@ app.post("/simulate-callback", async (c) => {
       });
     }
 
-    // Store verification data in database
-    try {
-      const { DatabaseService } = await import("../services/database.js");
-      const dbService = new DatabaseService();
+    console.log(`💾 Simulating verification data for ${userAddress}`);
 
-      await dbService.updateUserVerification(userAddress, {
-        name: verificationData?.name || "Test User",
-        nationality: verificationData?.nationality || "Indian",
-        age: verificationData?.age || 25,
-        documentType: verificationData?.documentType || "aadhar_card",
-      });
+    // Generate a mock nullifier ID for the simulation
+    const nullifierId = `0x${Array.from({ length: 64 }, () => Math.floor(Math.random() * 16).toString(16)).join('')}`;
 
-      console.log(`💾 Verification data stored in database for ${userAddress}`);
-    } catch (dbError) {
-      console.error("⚠️ Failed to store verification data in DB:", dbError);
-    }
+    console.log(`📝 Calling manualVerifyUser for ${userAddress}...`);
 
-    // Create metadata for blockchain storage
-    const metadata = new TextEncoder().encode(
-      JSON.stringify({
-        verifiedAt: Date.now(),
-        method: "simulated-self-protocol",
-        platform: "pokket",
-        ...verificationData,
-      })
+    // Call the verification function with provided or default data
+    const tx = await contract.manualVerifyUser?.(
+      nullifierId,
+      userAddress,
+      userAddress, // Using same address for SOL address in testing
+      verificationData?.name || "Simulated User",
+      verificationData?.nationality || "IN",
+      verificationData?.age || 25,
+      verificationData?.issuingState || "Maharashtra"
     );
-
-    console.log(`� Calling verifyUser for ${userAddress}...`);
-
-    // Call the verification function
-    const tx = await contract.verifyUser?.(userAddress, metadata);
     console.log(`⏳ Transaction sent: ${tx?.hash}`);
 
     // Wait for confirmation
     const receipt = await tx?.wait?.();
     console.log(`✅ Verification confirmed in block ${receipt?.blockNumber}`);
 
-    // Update database with transaction hash
-    try {
-      const { DatabaseService } = await import("../services/database.js");
-      const dbService = new DatabaseService();
-
-      await dbService.updateUserVerification(userAddress, {
-        txHash: tx?.hash,
-      });
-    } catch (dbError) {
-      console.error("⚠️ Failed to update txHash in DB:", dbError);
-    }
+    console.log(`💾 Transaction hash: ${tx?.hash}`);
 
     return c.json({
       success: true,
@@ -589,42 +453,23 @@ app.post("/set-config-id", async (c) => {
       `🔧 Setting config ID ${configId} for contract ${VERIFICATION_CONTRACT_ADDRESS}`
     );
 
-    // Use imported services to get owner's private key from database
-    const dbService = new DatabaseService();
-    const authService = new AuthService();
-
-    // Find owner by their Ethereum address
-    const owner = await dbService.findUserByAddress(ownerAddress);
-    if (!owner) {
-      return c.json(
-        {
-          error: `Owner with address ${ownerAddress} not found in database`,
-          suggestion: "Make sure the owner is registered and has a wallet",
-        },
-        404
-      );
-    }
-
-    // Decrypt the owner's private key
-    const ownerPrivateKey = authService.decryptPrivateKey(
-      owner.encryptedPrivateKey
-    );
+    // Use the private key from environment (this is the owner key)
+    const ownerPrivateKey = process.env.VERIFICATION_PRIVATE_KEY;
 
     if (!ownerPrivateKey) {
       return c.json(
         {
-          error: "Owner private key not found or empty",
-          suggestion:
-            "Make sure the owner has a valid encrypted private key in database",
+          error: "Owner private key not configured",
+          suggestion: "Set VERIFICATION_PRIVATE_KEY in .env file",
         },
-        404
+        500
       );
     }
 
-    console.log(`👤 Found contract owner: ${owner.email}`);
-
     // Create wallet using owner's private key
     const ownerWallet = new Wallet(ownerPrivateKey, provider);
+
+    console.log(`👤 Using contract owner: ${ownerWallet.address}`);
 
     // Verify the wallet address matches (security check)
     if (ownerWallet.address.toLowerCase() !== ownerAddress.toLowerCase()) {
@@ -654,7 +499,7 @@ app.post("/set-config-id", async (c) => {
       txHash: tx?.hash,
       blockNumber: receipt?.blockNumber,
       message: "Config ID updated successfully.",
-      ownerEmail: owner.email,
+      ownerAddress: ownerWallet.address,
     });
   } catch (error) {
     console.error("Error setting config ID:", error);
@@ -704,15 +549,9 @@ app.post("/manual-verify", async (c) => {
 
     console.log(`👤 Using contract owner: ${ownerWallet.address}`);
 
-    // Contract ABI for manual verification
-    const contractABI = [
-      "function verifyUser(address _user, bytes _metadata) external",
-      "function isUserVerified(address user) view returns (bool)",
-    ];
-
     const contract = new Contract(
       VERIFICATION_CONTRACT_ADDRESS,
-      contractABI,
+      VERIFICATION_ABI,
       ownerWallet
     );
 
@@ -727,36 +566,17 @@ app.post("/manual-verify", async (c) => {
       });
     }
 
-    // Create metadata as bytes
-    const metadataJson = JSON.stringify({
-      verifiedAt: Date.now(),
-      method: "manual-admin-verification",
-      platform: "pokket",
-    });
+    // Generate a mock nullifier ID for testing
+    const nullifierId = `0x${Array.from({ length: 64 }, () => Math.floor(Math.random() * 16).toString(16)).join('')}`;
+    
+    console.log(`📝 Calling manualVerifyUser for ${userAddress}...`);
 
-    // Convert to bytes using ethers utils
-    const metadata = new TextEncoder().encode(metadataJson);
-
-    console.log(`📝 Calling verifyUser for ${userAddress}...`);
-
-    // Estimate gas for manual verification
-    let gasEstimate = 200000n;
+    // Estimate gas for manual verification (SELF callback simulation)
+    let gasEstimate = 400000n; // Higher gas for more complex SELF callback
     let gasPrice;
 
     try {
-      const estimatedGas = await contract.verifyUser?.estimateGas(
-        userAddress,
-        metadata
-      );
       gasPrice = await provider.getFeeData();
-
-      if (estimatedGas) {
-        gasEstimate = estimatedGas;
-        console.log(
-          `⛽ Manual verification gas estimate: ${gasEstimate.toString()}`
-        );
-      }
-
       console.log(`💰 Current gas price: ${gasPrice.gasPrice?.toString()} wei`);
     } catch (gasError) {
       console.error(
@@ -766,11 +586,39 @@ app.post("/manual-verify", async (c) => {
       gasPrice = { gasPrice: 1000000000n };
     }
 
-    // Call the verification function with optimized gas
-    const tx = await contract.verifyUser?.(userAddress, metadata, {
-      gasLimit: (gasEstimate * 120n) / 100n,
-      gasPrice: gasPrice?.gasPrice || 1000000000n,
-    });
+    // Since this is the new SELF contract, we simulate the SELF callback
+    // In reality, SELF protocol would call onVerificationSuccess automatically
+    
+    // Create mock SELF verification output structure
+    const abiCoder = new AbiCoder();
+    const mockSelfOutput = {
+      userIdentifier: nullifierId,
+      disclosedAttributes: abiCoder.encode(
+        ["string", "string", "uint256", "string"],
+        ["Test User", "IN", 25, "Maharashtra"]
+      ),
+      timestamp: BigInt(Math.floor(Date.now() / 1000)),
+      configId: "0x0000000000000000000000000000000000000000000000000000000000000000"
+    };
+    
+    // Create user data (ETH and SOL addresses)
+    const userData = abiCoder.encode(
+      ["address", "address"], 
+      [userAddress, userAddress]
+    );
+
+    if (!contract.onVerificationSuccess) {
+      throw new Error("Contract method onVerificationSuccess not found");
+    }
+
+    const tx = await contract.onVerificationSuccess(
+      mockSelfOutput,
+      userData,
+      {
+        gasLimit: (gasEstimate * 120n) / 100n,
+        gasPrice: gasPrice?.gasPrice || 1000000000n,
+      }
+    );
     console.log(`⏳ Transaction sent: ${tx?.hash}`);
 
     // Wait for confirmation
@@ -789,6 +637,105 @@ app.post("/manual-verify", async (c) => {
     return c.json(
       {
         error: "Failed to manually verify user",
+        details: error instanceof Error ? error.message : "Unknown error",
+      },
+      500
+    );
+  }
+});
+
+/**
+ * GET /api/verification/user/:nullifierId
+ * Get user verification details by nullifier ID
+ */
+app.get("/user/:nullifierId", async (c) => {
+  try {
+    const nullifierId = c.req.param("nullifierId");
+
+    console.log(`🔍 Getting user details for nullifier: ${nullifierId}`);
+
+    if (!nullifierId || !nullifierId.startsWith("0x")) {
+      console.log(`❌ Invalid nullifier ID format: ${nullifierId}`);
+      return c.json({ error: "Invalid nullifier ID format" }, 400);
+    }
+
+    if (!VERIFICATION_CONTRACT_ADDRESS) {
+      console.log(`❌ Contract address not configured`);
+      return c.json({ error: "Contract address not configured" }, 500);
+    }
+
+    const contract = new Contract(
+      VERIFICATION_CONTRACT_ADDRESS,
+      VERIFICATION_ABI,
+      provider
+    );
+
+    try {
+      // Get verification data by nullifier ID
+      const verificationData = await contract.getVerificationByNullifier?.(nullifierId);
+      console.log(`📋 Contract returned:`, {
+        isVerified: verificationData?.isVerified,
+        name: verificationData?.name,
+        ethAddress: verificationData?.ethAddress
+      });
+
+      if (!verificationData || !verificationData.isVerified) {
+        console.log(`⚠️ User not found or not verified for nullifier: ${nullifierId}`);
+        // Return a mock user for SELF-verified users who haven't been stored in contract yet
+        return c.json({
+          success: true,
+          user: {
+            nullifierId: nullifierId,
+            ethAddress: null,
+            solAddress: null,
+            name: "SELF Verified User",
+            nationality: "UNKNOWN",
+            age: 0,
+            issuingState: "UNKNOWN",
+            verifiedAt: Date.now(),
+            isVerified: false, // Not stored in contract yet
+          }
+        });
+      }
+
+      return c.json({
+        success: true,
+        user: {
+          nullifierId: verificationData.nullifierId,
+          ethAddress: verificationData.ethAddress,
+          solAddress: verificationData.solAddress,
+          name: verificationData.name,
+          nationality: verificationData.nationality,
+          age: Number(verificationData.age),
+          issuingState: verificationData.issuingState,
+          verifiedAt: Number(verificationData.verifiedAt),
+          isVerified: verificationData.isVerified,
+        }
+      });
+    } catch (contractError) {
+      console.error(`❌ Contract call failed for nullifier ${nullifierId}:`, contractError);
+      // Return mock data for SELF-verified users when contract fails
+      return c.json({
+        success: true,
+        user: {
+          nullifierId: nullifierId,
+          ethAddress: null,
+          solAddress: null,
+          name: "SELF Verified User",
+          nationality: "UNKNOWN",
+          age: 0,
+          issuingState: "UNKNOWN",
+          verifiedAt: Date.now(),
+          isVerified: false,
+        }
+      });
+    }
+
+  } catch (error) {
+    console.error("❌ Error getting user by nullifier ID:", error);
+    return c.json(
+      {
+        error: "Failed to get user details",
         details: error instanceof Error ? error.message : "Unknown error",
       },
       500

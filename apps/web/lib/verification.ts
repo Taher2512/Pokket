@@ -151,7 +151,7 @@ export class SelfVerificationService {
       const API_BASE_URL =
         process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
       const response = await fetch(
-        `${API_BASE_URL}/verification/simulate-callback`,
+        `${API_BASE_URL}/verification/manual-verify`,
         {
           method: "POST",
           headers: {
@@ -159,12 +159,6 @@ export class SelfVerificationService {
           },
           body: JSON.stringify({
             userAddress,
-            verificationData: {
-              name: "Verified User",
-              nationality: "Indian",
-              age: 25,
-              documentType: "aadhar_card",
-            },
           }),
         }
       );

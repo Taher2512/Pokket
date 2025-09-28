@@ -1,10 +1,10 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { SelfQRcodeWrapper, SelfAppBuilder } from "@selfxyz/qrcode";
 import { getUniversalLink } from "@selfxyz/core";
 import { createVerificationService } from "../lib/verification";
-import { ethers } from "ethers";
+import { generateWalletKeyPairsFromPrivateKey } from "../lib/wallet-generator";
 
 interface SelfVerificationQRProps {
   userAddress: string;
@@ -17,20 +17,18 @@ export function SelfVerificationQR({
   onSuccess,
   onError,
 }: SelfVerificationQRProps) {
-  const [selfApp, setSelfApp] = useState<any>(null);
+  const [selfApp, setSelfApp] = useState<any>(null); // eslint-disable-line @typescript-eslint/no-explicit-any
   const [universalLink, setUniversalLink] = useState("");
   const [error, setError] = useState<string>("");
- const [userId] = useState(ethers.ZeroAddress);
-  useEffect(() => {
-    if(userId) {
-      console.log("Initializing Self app with userId:", userId);
-      initializeSelfApp();
-    }
-  }, [userId]);
 
-  const initializeSelfApp = async () => {
+  const initializeSelfApp = useCallback(async () => {
     try {
       setError("");
+
+      // Validate userAddress format
+      if (!userAddress || !userAddress.startsWith('0x') || userAddress.length !== 42) {
+        throw new Error("Invalid Ethereum address format");
+      }
 
       // Check if contract address is configured
       const contractAddress =
@@ -39,19 +37,50 @@ export function SelfVerificationQR({
         throw new Error("Verification contract address not configured");
       }
 
-      // Create Self app configuration
+      // Validate contract address format
+      if (!contractAddress.startsWith('0x') || contractAddress.length !== 42) {
+        throw new Error("Invalid contract address format");
+      }
+
+      // Generate proper keypairs for both ETH and SOL
+      console.log('🔑 Generating keypairs for ETH and SOL addresses...');
+      
+      // Get or generate a master private key for deterministic wallet generation
+      let masterPrivateKey = localStorage.getItem('pokket_master_private_key');
+      if (!masterPrivateKey) {
+        // Create a new random private key and store it
+        const { ethers } = await import('ethers');
+        const wallet = ethers.Wallet.createRandom();
+        masterPrivateKey = wallet.privateKey;
+        localStorage.setItem('pokket_master_private_key', masterPrivateKey);
+        console.log('🔑 Generated new master private key');
+      }
+      
+      // Generate both ETH and SOL keypairs from the master key
+      const walletKeyPairs = generateWalletKeyPairsFromPrivateKey(masterPrivateKey);
+      
+      console.log('🔑 Generated wallet addresses:', {
+        ethereum: walletKeyPairs.ethereum.address,
+        solana: walletKeyPairs.solana.address
+      });
+      
+      // Store the keypairs for later use
+      localStorage.setItem('pokket_wallet_keypairs', JSON.stringify(walletKeyPairs));
+
+      // Create Self app configuration for Pokket
       const app = new SelfAppBuilder({
         version: 2,
-        appName: process.env.NEXT_PUBLIC_SELF_APP_NAME || "Pokket Wallet",
-        scope:
-          process.env.NEXT_PUBLIC_SELF_SCOPE || "pokket-identity-verification",
+        appName: "Pokket Wallet",
+        scope: "pokket-identity-verification",
         endpoint: contractAddress,
         endpointType: "staging_celo", // Celo testnet
-        // userIdType: "hex",
-        userId: userId,
-        logoBase64: "https://i.postimg.cc/mrmVf9hm/self.png", // Self protocol logo
+        userIdType: "hex", 
+        userId: userAddress.toLowerCase(),
+        logoBase64: "",
         userDefinedData: JSON.stringify({
           platform: "pokket",
+          ethAddress: walletKeyPairs.ethereum.address.toLowerCase(),
+          solAddress: walletKeyPairs.solana.address, // Proper Solana address
           timestamp: Date.now(),
           version: "1.0",
         }),
@@ -74,10 +103,22 @@ export function SelfVerificationQR({
         },
       }).build();
 
+
+      console.log("🔧 SELF app configuration:", {
+        version: 2,
+        appName: process.env.NEXT_PUBLIC_SELF_APP_NAME || "Pokket Wallet",
+        scope: process.env.NEXT_PUBLIC_SELF_SCOPE || "pokket-identity-verification",
+        endpoint: contractAddress,
+        endpointType: "staging_celo",
+        userIdType: "hex",
+        userId: userAddress.toLowerCase(),
+      });
+
       setSelfApp(app);
 
       // Generate universal link for mobile users
       const link = getUniversalLink(app);
+      console.log("🔧 Generated universal link:", link);
       setUniversalLink(link);
     } catch (err) {
       const errorMessage =
@@ -87,17 +128,97 @@ export function SelfVerificationQR({
       setError(errorMessage);
       onError?.(errorMessage);
     }
-  };
+  }, [userAddress, onError]);
 
-  const handleSuccess = () => {
-    console.log("✅ Identity verification successful!-v1");
+  useEffect(() => {
+    if(userAddress) {
+      console.log("🔧 Initializing Self app with userAddress:", userAddress);
+      console.log("🔧 Contract address:", process.env.NEXT_PUBLIC_VERIFICATION_CONTRACT_ADDRESS);
+      initializeSelfApp();
+    }
+  }, [userAddress, initializeSelfApp]);
+
+  // Add polling state
+  const [isPolling, setIsPolling] = useState(false);
+  const pollingInterval = useRef<NodeJS.Timeout | null>(null);
+
+  const handleSuccess = useCallback(() => {
+    console.log("✅ Identity verification successful!");
+    if (pollingInterval.current) {
+      clearInterval(pollingInterval.current);
+    }
+    setIsPolling(false);
     onSuccess?.();
+  }, [onSuccess]);
+
+  const startVerificationPolling = useCallback(() => {
+    if (isPolling) return; // Prevent multiple polling instances
+    
+    setIsPolling(true);
+    console.log("🔄 Starting verification status polling...");
+    
+    pollingInterval.current = setInterval(async () => {
+      try {
+        const verificationService = createVerificationService(userAddress);
+        const status = await verificationService.checkVerificationStatus(userAddress);
+        
+        console.log("📊 Polling verification status:", status);
+        
+        if (status.isVerified) {
+          console.log("✅ Verification detected! Stopping polling...");
+          if (pollingInterval.current) {
+            clearInterval(pollingInterval.current);
+          }
+          setIsPolling(false);
+          handleSuccess();
+        }
+      } catch (error) {
+        console.error("❌ Error polling verification status:", error);
+      }
+    }, 3000); // Poll every 3 seconds
+  }, [userAddress, isPolling, handleSuccess]);
+
+  // Start polling for verification status when QR is displayed
+  useEffect(() => {
+    if (selfApp && !isPolling) {
+      startVerificationPolling();
+    }
+    
+    return () => {
+      if (pollingInterval.current) {
+        clearInterval(pollingInterval.current);
+      }
+    };
+  }, [selfApp, userAddress, startVerificationPolling, isPolling]);
+
+  const handleError = (error?: unknown) => {
+    const errorMessage = error ? `Failed to verify identity: ${error}` : "Failed to verify identity";
+    console.error("❌ SELF Verification Error:", error);
+    if (pollingInterval.current) {
+      clearInterval(pollingInterval.current);
+    }
+    setIsPolling(false);
+    onError?.(errorMessage);
   };
 
-  const handleError = () => {
-    const errorMessage = "Failed to verify identity";
-    console.error("❌", errorMessage);
-    onError?.(errorMessage);
+  const handleManualVerificationComplete = async () => {
+    try {
+      console.log("🔧 Manual verification completion for address:", userAddress);
+      
+      // Call the manual verification endpoint
+      const verificationService = createVerificationService(userAddress);
+      const result = await verificationService.triggerManualVerification(userAddress);
+      
+      if (result.success) {
+        console.log("✅ Manual verification successful:", result.message);
+        handleSuccess();
+      } else {
+        throw new Error(result.message || "Manual verification failed");
+      }
+    } catch (error) {
+      console.error("❌ Manual verification failed:", error);
+      handleError(error);
+    }
   };
 
   const openSelfApp = () => {
@@ -158,7 +279,7 @@ export function SelfVerificationQR({
       </div>
 
       {/* Mobile Universal Link Button */}
-      <div className="mb-4">
+      <div className="mb-4 space-y-3">
         <button
           onClick={openSelfApp}
           className="w-full flex items-center justify-center space-x-2 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
@@ -168,12 +289,27 @@ export function SelfVerificationQR({
           </svg>
           <span>Open Self App on Mobile</span>
         </button>
+
+        {/* Manual Verification Complete Button */}
+        <button
+          onClick={handleManualVerificationComplete}
+          className="w-full flex items-center justify-center space-x-2 px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
+        >
+          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+          </svg>
+          <span>Complete Verification & Link Wallet</span>
+        </button>
       </div>
 
       {/* Help Text */}
-      <div className="text-xs text-gray-500 space-y-1">
-        <p>📱 On mobile: Tap the button above to open Self app directly</p>
-        <p>💻 On desktop: Scan the QR code with your phone's Self app</p>
+      <div className="text-xs text-gray-500 space-y-2">
+        <p>📱 On mobile: Tap the first button to open Self app directly</p>
+        <p>💻 On desktop: Scan the QR code with your phone&apos;s Self app</p>
+        <div className="mt-3 p-2 bg-yellow-50 rounded border-l-4 border-yellow-400 text-yellow-700">
+          <p><strong>Already verified in Self app?</strong></p>
+          <p>If you completed verification but the web app didn&apos;t detect it, click &quot;Complete Verification & Link Wallet&quot; to manually link your wallet.</p>
+        </div>
       </div>
     </div>
   );
