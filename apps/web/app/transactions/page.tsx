@@ -73,6 +73,15 @@ export default function TransactionsPage() {
     return tx.type === filter;
   });
 
+  const copyToClipboard = async (text: string, label: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      alert(`${label} copied to clipboard!`);
+    } catch (error) {
+      console.error("Failed to copy:", error);
+    }
+  };
+
   const getTransactionIcon = (type: string, status: string) => {
     if (status === "pending") {
       return (
@@ -201,133 +210,249 @@ export default function TransactionsPage() {
 
       {/* Main Content */}
       <main className="pt-20 pb-20 md:pb-8 md:pt-28">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Header */}
           <div className="mb-8">
-            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4">
+            <h1 className="text-2xl md:text-4xl font-bold text-gray-900 mb-4">
               Transaction History
             </h1>
-            <p className="text-gray-600">
+            <p className="text-gray-600 md:text-lg">
               Track all your payments, receipts, and swaps
             </p>
           </div>
 
-          {/* Filter Tabs */}
-          <div className="bg-white rounded-xl border border-gray-200 mb-6">
-            <div className="p-2">
-              <div className="grid grid-cols-4 gap-1">
-                {(["all", "sent", "received", "swap"] as TransactionType[]).map(
-                  (type) => (
-                    <button
-                      key={type}
-                      onClick={() => setFilter(type)}
-                      className={`px-4 py-2 text-sm font-medium rounded-lg transition-all ${
-                        filter === type
-                          ? "bg-orange-100 text-orange-700"
-                          : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
-                      }`}
-                    >
-                      {type.charAt(0).toUpperCase() + type.slice(1)}
-                    </button>
-                  )
-                )}
-              </div>
-            </div>
-          </div>
+          <div className="lg:grid lg:grid-cols-4 lg:gap-8">
+            {/* Sidebar for Large Screens */}
+            <div className="hidden lg:block lg:col-span-1">
+              <div className="bg-white rounded-xl border border-gray-200 p-6 sticky top-32">
+                <h2 className="text-lg font-semibold text-gray-900 mb-4">
+                  Quick Stats
+                </h2>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">
+                      Total Transactions
+                    </span>
+                    <span className="font-semibold text-gray-900">
+                      {mockTransactions.length}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">This Month</span>
+                    <span className="font-semibold text-gray-900">
+                      {
+                        mockTransactions.filter((tx) => {
+                          const txDate = new Date(tx.timestamp);
+                          const now = new Date();
+                          return (
+                            txDate.getMonth() === now.getMonth() &&
+                            txDate.getFullYear() === now.getFullYear()
+                          );
+                        }).length
+                      }
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">Pending</span>
+                    <span className="font-semibold text-orange-600">
+                      {
+                        mockTransactions.filter((tx) => tx.status === "pending")
+                          .length
+                      }
+                    </span>
+                  </div>
+                </div>
 
-          {/* Transactions List */}
-          <div className="space-y-3">
-            {filteredTransactions.map((transaction) => (
-              <div
-                key={transaction.id}
-                className="bg-white rounded-xl border border-gray-200 p-4 hover:shadow-md transition-all"
-              >
-                <div className="flex items-center space-x-4">
-                  {getTransactionIcon(transaction.type, transaction.status)}
-
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between mb-1">
-                      <div className="flex items-center space-x-2">
-                        <h3 className="text-sm font-medium text-gray-900 capitalize">
-                          {transaction.type === "swap"
-                            ? `${transaction.fromToken} → ${transaction.toToken}`
-                            : `${transaction.type} ${transaction.token}`}
-                        </h3>
-                        {getStatusBadge(transaction.status)}
-                      </div>
-                      <div className="text-right">
-                        <div
-                          className={`text-sm font-semibold ${
-                            transaction.type === "received"
-                              ? "text-green-600"
-                              : transaction.type === "sent"
-                                ? "text-red-600"
-                                : "text-gray-900"
-                          }`}
-                        >
-                          {transaction.type === "received" && "+"}
-                          {transaction.type === "sent" && "-"}
-                          {transaction.type === "swap"
-                            ? `${transaction.amount} ${transaction.fromToken}`
-                            : `${transaction.amount} ${transaction.token}`}
-                        </div>
-                        {transaction.type === "swap" &&
-                          transaction.toAmount && (
-                            <div className="text-xs text-gray-500">
-                              +{transaction.toAmount} {transaction.toToken}
+                <div className="mt-6 pt-6 border-t border-gray-200">
+                  <h3 className="text-sm font-semibold text-gray-900 mb-3">
+                    Transaction Types
+                  </h3>
+                  <div className="space-y-2">
+                    {(["sent", "received", "swap"] as TransactionType[]).map(
+                      (type) => {
+                        const count = mockTransactions.filter(
+                          (tx) => tx.type === type
+                        ).length;
+                        const percentage = Math.round(
+                          (count / mockTransactions.length) * 100
+                        );
+                        return (
+                          <div
+                            key={type}
+                            className="flex items-center justify-between text-sm"
+                          >
+                            <span className="capitalize text-gray-600">
+                              {type}
+                            </span>
+                            <div className="flex items-center space-x-2">
+                              <span className="text-gray-900 font-medium">
+                                {count}
+                              </span>
+                              <span className="text-gray-400">
+                                ({percentage}%)
+                              </span>
                             </div>
-                          )}
-                      </div>
-                    </div>
-
-                    <div className="flex items-center justify-between text-xs text-gray-500">
-                      <div>
-                        {transaction.type === "sent" && transaction.to && (
-                          <span>To: {transaction.to}</span>
-                        )}
-                        {transaction.type === "received" &&
-                          transaction.from && (
-                            <span>From: {transaction.from}</span>
-                          )}
-                        {transaction.type === "swap" && (
-                          <span>Swapped via DeFi</span>
-                        )}
-                      </div>
-                      <div>
-                        {formatDistanceToNow(transaction.timestamp)} ago
-                      </div>
-                    </div>
+                          </div>
+                        );
+                      }
+                    )}
                   </div>
                 </div>
               </div>
-            ))}
-          </div>
-
-          {filteredTransactions.length === 0 && (
-            <div className="text-center py-12">
-              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg
-                  className="w-8 h-8 text-gray-400"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                  />
-                </svg>
-              </div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">
-                No transactions found
-              </h3>
-              <p className="text-gray-500">
-                No transactions match the selected filter.
-              </p>
             </div>
-          )}
+
+            {/* Main Content */}
+            <div className="lg:col-span-3">
+              {/* Filter Tabs */}
+              <div className="bg-white rounded-xl border border-gray-200 mb-6">
+                <div className="p-2">
+                  <div className="grid grid-cols-4 gap-1">
+                    {(
+                      ["all", "sent", "received", "swap"] as TransactionType[]
+                    ).map((type) => (
+                      <button
+                        key={type}
+                        onClick={() => setFilter(type)}
+                        className={`px-4 py-2 text-sm font-medium rounded-lg transition-all ${
+                          filter === type
+                            ? "bg-orange-100 text-orange-700"
+                            : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                        }`}
+                      >
+                        {type.charAt(0).toUpperCase() + type.slice(1)}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Transactions List */}
+              <div className="space-y-3">
+                {filteredTransactions.map((transaction) => (
+                  <div
+                    key={transaction.id}
+                    className="bg-white rounded-xl border border-gray-200 p-4 lg:p-6 hover:shadow-md transition-all"
+                  >
+                    <div className="flex items-center space-x-4">
+                      {getTransactionIcon(transaction.type, transaction.status)}
+
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between mb-1">
+                          <div className="flex items-center space-x-2">
+                            <h3 className="text-sm lg:text-base font-medium text-gray-900 capitalize">
+                              {transaction.type === "swap"
+                                ? `${transaction.fromToken} → ${transaction.toToken}`
+                                : `${transaction.type} ${transaction.token}`}
+                            </h3>
+                            {getStatusBadge(transaction.status)}
+                          </div>
+                          <div className="text-right">
+                            <div
+                              className={`text-sm lg:text-base font-semibold ${
+                                transaction.type === "received"
+                                  ? "text-green-600"
+                                  : transaction.type === "sent"
+                                    ? "text-red-600"
+                                    : "text-gray-900"
+                              }`}
+                            >
+                              {transaction.type === "received" && "+"}
+                              {transaction.type === "sent" && "-"}
+                              {transaction.type === "swap"
+                                ? `${transaction.amount} ${transaction.fromToken}`
+                                : `${transaction.amount} ${transaction.token}`}
+                            </div>
+                            {transaction.type === "swap" &&
+                              transaction.toAmount && (
+                                <div className="text-xs lg:text-sm text-gray-500">
+                                  +{transaction.toAmount} {transaction.toToken}
+                                </div>
+                              )}
+                          </div>
+                        </div>
+
+                        <div className="flex items-center justify-between text-xs lg:text-sm text-gray-500">
+                          <div>
+                            {transaction.type === "sent" && transaction.to && (
+                              <span>To: {transaction.to}</span>
+                            )}
+                            {transaction.type === "received" &&
+                              transaction.from && (
+                                <span>From: {transaction.from}</span>
+                              )}
+                            {transaction.type === "swap" && (
+                              <span>Swapped via DeFi</span>
+                            )}
+                            {/* Show full address on larger screens */}
+                            <span className="hidden lg:inline ml-2 text-gray-400">
+                              {transaction.address &&
+                                `(${transaction.address})`}
+                            </span>
+                          </div>
+                          <div className="flex items-center space-x-4">
+                            <span>
+                              {formatDistanceToNow(transaction.timestamp)} ago
+                            </span>
+                            {/* Transaction Hash Link on Large Screens */}
+                            <button
+                              onClick={() =>
+                                copyToClipboard(
+                                  transaction.hash,
+                                  "Transaction hash"
+                                )
+                              }
+                              className="hidden lg:inline-flex items-center text-orange-600 hover:text-orange-700 transition-colors"
+                              title="Copy transaction hash"
+                            >
+                              <svg
+                                className="w-4 h-4"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth="2"
+                                  d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                                />
+                              </svg>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {filteredTransactions.length === 0 && (
+                <div className="text-center py-12">
+                  <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg
+                      className="w-8 h-8 text-gray-400"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                      />
+                    </svg>
+                  </div>
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">
+                    No transactions found
+                  </h3>
+                  <p className="text-gray-500">
+                    No transactions match the selected filter.
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </main>
     </div>

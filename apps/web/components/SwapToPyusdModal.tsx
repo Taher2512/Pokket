@@ -24,6 +24,7 @@ interface SwapToPyusdModalProps {
     address: string;
     symbol: string;
     name: string;
+    decimals: number;
     balance: string;
     balanceFormatted: string;
     logoURI?: string;
@@ -72,6 +73,10 @@ export function SwapToPyusdModal({
 
   const formatAmount = (amount: string, decimals: number): string => {
     const num = parseFloat(amount) / Math.pow(10, decimals);
+    // For PYUSD (6 decimals), show appropriate precision
+    if (decimals === 6) {
+      return num.toFixed(2); // Show 2 decimal places for PYUSD
+    }
     return num.toFixed(6);
   };
 
@@ -86,8 +91,8 @@ export function SwapToPyusdModal({
     setQuote(null);
 
     try {
-      // Assuming the token has 18 decimals (most ERC-20 tokens)
-      const decimals = 18; // You might want to fetch this from the token data
+      // Use the actual decimals from the token data
+      const decimals = token.decimals;
       const amountInSmallestUnits = (
         parseFloat(amount) * Math.pow(10, decimals)
       ).toString();
@@ -129,7 +134,8 @@ export function SwapToPyusdModal({
     setTxHash("");
 
     try {
-      const decimals = 18; // Assuming 18 decimals
+      // Use the actual decimals from the token data
+      const decimals = token.decimals;
       const amountInSmallestUnits = (
         parseFloat(amount) * Math.pow(10, decimals)
       ).toString();

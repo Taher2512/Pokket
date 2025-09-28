@@ -15,7 +15,8 @@ export function TokenPortfolio({ className = "" }: TokenPortfolioProps) {
   const [error, setError] = useState<string>("");
   const [refreshing, setRefreshing] = useState(false);
   const [isSwapModalOpen, setIsSwapModalOpen] = useState(false);
-  const [selectedTokenForSwap, setSelectedTokenForSwap] = useState<any>(null);
+  const [selectedTokenForSwap, setSelectedTokenForSwap] =
+    useState<TokenInfo | null>(null);
 
   useEffect(() => {
     loadPortfolio();
@@ -53,7 +54,7 @@ export function TokenPortfolio({ className = "" }: TokenPortfolioProps) {
     }
   };
 
-  const openSwapModal = (token: any) => {
+  const openSwapModal = (token: TokenInfo) => {
     // Don't allow swapping PYUSD to PYUSD
     if (token.symbol === "PYUSD") {
       return;
@@ -281,18 +282,18 @@ export function TokenPortfolio({ className = "" }: TokenPortfolioProps) {
                   key={token.address}
                   className={`${
                     token.symbol === "PYUSD"
-                      ? "relative flex items-center justify-between p-4 bg-gradient-to-r from-orange-50 via-amber-50 to-yellow-50 border-2 border-gradient-to-r border-orange-300 rounded-xl shadow-md hover:shadow-lg transition-all duration-200 group ring-2 ring-orange-200 ring-opacity-50"
-                      : "flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-all duration-200 group"
+                      ? "relative flex items-center justify-between p-4 sm:p-6 bg-gradient-to-r from-orange-50 via-amber-50 to-yellow-50 border-2 border-gradient-to-r border-orange-300 rounded-xl shadow-md hover:shadow-lg transition-all duration-200 group ring-2 ring-orange-200 ring-opacity-50"
+                      : "flex items-center justify-between p-4 sm:p-6 bg-gray-50 rounded-xl hover:bg-gray-100 transition-all duration-200 group"
                   }`}
                 >
-                  <div className="flex items-center space-x-4">
+                  <div className="flex items-center space-x-4 min-w-0 flex-1">
                     {/* Token Icon/Logo */}
-                    <div className="relative">
+                    <div className="relative flex-shrink-0">
                       {token.logoURI ? (
                         <img
                           src={token.logoURI}
                           alt={token.symbol}
-                          className="w-10 h-10 rounded-full"
+                          className="w-12 h-12 sm:w-10 sm:h-10 rounded-full"
                           onError={(e) => {
                             (e.target as HTMLImageElement).style.display =
                               "none";
@@ -305,7 +306,7 @@ export function TokenPortfolio({ className = "" }: TokenPortfolioProps) {
                       ) : null}
                       {/* Fallback icon - always rendered but hidden unless needed */}
                       <div
-                        className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                        className={`w-12 h-12 sm:w-10 sm:h-10 rounded-full flex items-center justify-center ${
                           token.logoURI ? "hidden" : "flex"
                         } ${
                           token.symbol === "ETH"
@@ -332,17 +333,17 @@ export function TokenPortfolio({ className = "" }: TokenPortfolioProps) {
                     </div>
 
                     {/* Token Info */}
-                    <div>
-                      <div className="flex items-center space-x-2">
-                        <h4 className="font-semibold text-gray-900">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center flex-wrap gap-2">
+                        <h4 className="font-semibold text-gray-900 text-base sm:text-sm">
                           {token.symbol}
                         </h4>
-                        <span className="text-xs px-2 py-1 bg-gray-200 text-gray-600 rounded-full">
+                        <span className="text-xs px-2 py-1 bg-gray-200 text-gray-600 rounded-full hidden sm:inline-block">
                           {token.name}
                         </span>
                         {token.symbol === "PYUSD" && (
                           <span className="text-xs px-2 py-1 bg-gradient-to-r from-orange-500 to-yellow-500 text-white rounded-full font-medium shadow-sm">
-                            Default Stable Currency
+                            Stable
                           </span>
                         )}
                       </div>
@@ -379,15 +380,17 @@ export function TokenPortfolio({ className = "" }: TokenPortfolioProps) {
                   </div>
 
                   {/* Token Balance & Value */}
-                  <div className="text-right flex items-center space-x-3">
+                  <div className="text-right flex items-center space-x-2 sm:space-x-3 flex-shrink-0">
                     <div>
-                      <p className="font-semibold text-gray-900">
+                      <p className="font-semibold text-gray-900 text-sm sm:text-base">
                         {formatBalance(token.balanceFormatted)} {token.symbol}
                       </p>
                       {token.priceUSD && token.valueUSD && (
                         <div className="text-sm text-gray-600 mt-1">
-                          <div>{formatUSD(token.valueUSD)}</div>
-                          <div className="text-xs text-gray-500">
+                          <div className="text-xs sm:text-sm">
+                            {formatUSD(token.valueUSD)}
+                          </div>
+                          <div className="text-xs text-gray-500 hidden sm:block">
                             @ {formatUSD(token.priceUSD)} per {token.symbol}
                           </div>
                         </div>
@@ -398,10 +401,11 @@ export function TokenPortfolio({ className = "" }: TokenPortfolioProps) {
                     {token.symbol !== "PYUSD" && (
                       <button
                         onClick={() => openSwapModal(token)}
-                        className="opacity-0 group-hover:opacity-100 flex items-center justify-center px-3 py-1.5 bg-orange-500 hover:bg-orange-600 text-white rounded-lg transition-all duration-200 shadow-sm hover:shadow-md text-xs font-medium whitespace-nowrap"
+                        className="opacity-0 group-hover:opacity-100 sm:opacity-100 flex items-center justify-center px-2 py-1.5 sm:px-3 sm:py-1.5 bg-orange-500 hover:bg-orange-600 text-white rounded-lg transition-all duration-200 shadow-sm hover:shadow-md text-xs font-medium whitespace-nowrap"
                         title={`Swap ${token.symbol} to PYUSD`}
                       >
-                        → PYUSD
+                        <span className="hidden sm:inline">→ PYUSD</span>
+                        <span className="sm:hidden">→</span>
                       </button>
                     )}
                   </div>
